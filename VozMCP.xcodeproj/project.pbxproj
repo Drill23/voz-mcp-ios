@@ -1,0 +1,502 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0512B1F1E636B0D78697EB1F /* AppIcon29x29@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E122C9F07CB0DDF67A4B9F5 /* AppIcon29x29@3x.png */; };
+		08DDD0552BE03B396438D9AB /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 808EFC28B213EAA85491EDE7 /* KeyboardViewController.swift */; };
+		1BCB4DC94E34572356448557 /* DraftGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62EA8387421072B6A1C608A4 /* DraftGenerator.swift */; };
+		1D9CF40FFB17F644048764F1 /* VozMCPApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81C5EAA46F0201742BF90756 /* VozMCPApp.swift */; };
+		1FDE133BF334F6560D62BB04 /* AppIcon20x20@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 58DE16D6557D9DB31EEA1737 /* AppIcon20x20@3x.png */; };
+		3100155A8E0DC67C071F2B0F /* AppIcon40x40@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 89294AFAD891EB6A5314A7E8 /* AppIcon40x40@2x.png */; };
+		440FBC8AD8FDD9EBA0D1B29E /* HeroIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = E08CF7973E5845BF67F65DAE /* HeroIcon.png */; };
+		49B8A29318A72EBA496CC05C /* AppIcon60x60@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 655589F93B8639AB23C8C6EC /* AppIcon60x60@2x.png */; };
+		54C6F69E2976C7C911E10499 /* AppIcon20x20@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2238D870838BD7F96DA719A /* AppIcon20x20@2x.png */; };
+		65AFD7E6F44EB6AC7B30117F /* ComposerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7487F5C387C4B901BB91169B /* ComposerViewModel.swift */; };
+		75769E42BC6143C0EA5BD50F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED1798F590481748620FE9A /* ContentView.swift */; };
+		7A633C49D905CEB99BEB6408 /* DraftGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62EA8387421072B6A1C608A4 /* DraftGenerator.swift */; };
+		80960D6E190612D76C344C4C /* AppIcon29x29@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F078988E0AABB844A4D2D29D /* AppIcon29x29@2x.png */; };
+		8E4A48F0681C1AEF62840EAC /* KeyboardSpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E4D7A7BB1BA0F9A963F3FC /* KeyboardSpeechRecognizer.swift */; };
+		B78592DBE7F4119397F56777 /* AppIcon40x40@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 2F3AE65CFB8F4E7FFDD1BEDB /* AppIcon40x40@3x.png */; };
+		BBADEF5E6240E6E5319DB30F /* VozMCPKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = ABDEB9DE4592942AD98CA30D /* VozMCPKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		CE7B119CDCB5B54A37C9BE2D /* AppIcon60x60@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50110D15B9FDBB231856300A /* AppIcon60x60@3x.png */; };
+		F4AB24FB4E6D199DD2A27F6F /* SpeechCommandRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10AE87CC9A8698C01BB11E4 /* SpeechCommandRecognizer.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C5EC5CE3F384B01159A9C889 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F91273E6F46F9AC3F8B75BFB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F877D078C04177584D345002;
+			remoteInfo = VozMCPKeyboard;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		68907B9BA8807A6774632145 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				BBADEF5E6240E6E5319DB30F /* VozMCPKeyboard.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		1ED1798F590481748620FE9A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		2F3AE65CFB8F4E7FFDD1BEDB /* AppIcon40x40@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon40x40@3x.png"; sourceTree = "<group>"; };
+		50110D15B9FDBB231856300A /* AppIcon60x60@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon60x60@3x.png"; sourceTree = "<group>"; };
+		50E4D7A7BB1BA0F9A963F3FC /* KeyboardSpeechRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardSpeechRecognizer.swift; sourceTree = "<group>"; };
+		58DE16D6557D9DB31EEA1737 /* AppIcon20x20@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon20x20@3x.png"; sourceTree = "<group>"; };
+		62EA8387421072B6A1C608A4 /* DraftGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftGenerator.swift; sourceTree = "<group>"; };
+		655589F93B8639AB23C8C6EC /* AppIcon60x60@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon60x60@2x.png"; sourceTree = "<group>"; };
+		7487F5C387C4B901BB91169B /* ComposerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerViewModel.swift; sourceTree = "<group>"; };
+		808EFC28B213EAA85491EDE7 /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardViewController.swift; sourceTree = "<group>"; };
+		81C5EAA46F0201742BF90756 /* VozMCPApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VozMCPApp.swift; sourceTree = "<group>"; };
+		89294AFAD891EB6A5314A7E8 /* AppIcon40x40@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon40x40@2x.png"; sourceTree = "<group>"; };
+		9E122C9F07CB0DDF67A4B9F5 /* AppIcon29x29@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon29x29@3x.png"; sourceTree = "<group>"; };
+		ABDEB9DE4592942AD98CA30D /* VozMCPKeyboard.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = VozMCPKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B7A77B913F40BA7020B496FB /* VozMCP.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = VozMCP.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C10AE87CC9A8698C01BB11E4 /* SpeechCommandRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechCommandRecognizer.swift; sourceTree = "<group>"; };
+		CB5099F991934933D2C64739 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		CE4A2EC6CA15096081A42D7A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		E08CF7973E5845BF67F65DAE /* HeroIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = HeroIcon.png; sourceTree = "<group>"; };
+		F078988E0AABB844A4D2D29D /* AppIcon29x29@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon29x29@2x.png"; sourceTree = "<group>"; };
+		F2238D870838BD7F96DA719A /* AppIcon20x20@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon20x20@2x.png"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0FAD6CC00D6FF9C8862DB36E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B7A77B913F40BA7020B496FB /* VozMCP.app */,
+				ABDEB9DE4592942AD98CA30D /* VozMCPKeyboard.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3B512E77F2959F3817F09FFD = {
+			isa = PBXGroup;
+			children = (
+				8181A65310F7AEDE422A9CF5 /* KeyboardExtension */,
+				B1A7C10B9D3C29E3199FB656 /* VozMCPApp */,
+				0FAD6CC00D6FF9C8862DB36E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		8181A65310F7AEDE422A9CF5 /* KeyboardExtension */ = {
+			isa = PBXGroup;
+			children = (
+				CB5099F991934933D2C64739 /* Info.plist */,
+				50E4D7A7BB1BA0F9A963F3FC /* KeyboardSpeechRecognizer.swift */,
+				808EFC28B213EAA85491EDE7 /* KeyboardViewController.swift */,
+			);
+			path = KeyboardExtension;
+			sourceTree = "<group>";
+		};
+		B1A7C10B9D3C29E3199FB656 /* VozMCPApp */ = {
+			isa = PBXGroup;
+			children = (
+				7487F5C387C4B901BB91169B /* ComposerViewModel.swift */,
+				1ED1798F590481748620FE9A /* ContentView.swift */,
+				62EA8387421072B6A1C608A4 /* DraftGenerator.swift */,
+				CE4A2EC6CA15096081A42D7A /* Info.plist */,
+				C10AE87CC9A8698C01BB11E4 /* SpeechCommandRecognizer.swift */,
+				81C5EAA46F0201742BF90756 /* VozMCPApp.swift */,
+				F132D4EA8C474C448C8DB68E /* Resources */,
+			);
+			path = VozMCPApp;
+			sourceTree = "<group>";
+		};
+		F132D4EA8C474C448C8DB68E /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				F2238D870838BD7F96DA719A /* AppIcon20x20@2x.png */,
+				58DE16D6557D9DB31EEA1737 /* AppIcon20x20@3x.png */,
+				F078988E0AABB844A4D2D29D /* AppIcon29x29@2x.png */,
+				9E122C9F07CB0DDF67A4B9F5 /* AppIcon29x29@3x.png */,
+				89294AFAD891EB6A5314A7E8 /* AppIcon40x40@2x.png */,
+				2F3AE65CFB8F4E7FFDD1BEDB /* AppIcon40x40@3x.png */,
+				655589F93B8639AB23C8C6EC /* AppIcon60x60@2x.png */,
+				50110D15B9FDBB231856300A /* AppIcon60x60@3x.png */,
+				E08CF7973E5845BF67F65DAE /* HeroIcon.png */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		18A16D59DBFBDC172976BA72 /* VozMCP */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FDBEA40857C1A0CB9E02D25C /* Build configuration list for PBXNativeTarget "VozMCP" */;
+			buildPhases = (
+				23E779768E07D06AF9709588 /* Sources */,
+				6E28DD60D3D737A19A4519C6 /* Resources */,
+				68907B9BA8807A6774632145 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9D6A1A6E321C4877B90D4E85 /* PBXTargetDependency */,
+			);
+			name = VozMCP;
+			packageProductDependencies = (
+			);
+			productName = VozMCP;
+			productReference = B7A77B913F40BA7020B496FB /* VozMCP.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F877D078C04177584D345002 /* VozMCPKeyboard */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A2A46D61660E13B092CA15DD /* Build configuration list for PBXNativeTarget "VozMCPKeyboard" */;
+			buildPhases = (
+				98540480C255808208619C53 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VozMCPKeyboard;
+			packageProductDependencies = (
+			);
+			productName = VozMCPKeyboard;
+			productReference = ABDEB9DE4592942AD98CA30D /* VozMCPKeyboard.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F91273E6F46F9AC3F8B75BFB /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					18A16D59DBFBDC172976BA72 = {
+						DevelopmentTeam = 73HPGSC9QX;
+						ProvisioningStyle = Automatic;
+					};
+					F877D078C04177584D345002 = {
+						DevelopmentTeam = 73HPGSC9QX;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 69A55141BE8946F24FD5EE40 /* Build configuration list for PBXProject "VozMCP" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 3B512E77F2959F3817F09FFD;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 0FAD6CC00D6FF9C8862DB36E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				18A16D59DBFBDC172976BA72 /* VozMCP */,
+				F877D078C04177584D345002 /* VozMCPKeyboard */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		6E28DD60D3D737A19A4519C6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				54C6F69E2976C7C911E10499 /* AppIcon20x20@2x.png in Resources */,
+				1FDE133BF334F6560D62BB04 /* AppIcon20x20@3x.png in Resources */,
+				80960D6E190612D76C344C4C /* AppIcon29x29@2x.png in Resources */,
+				0512B1F1E636B0D78697EB1F /* AppIcon29x29@3x.png in Resources */,
+				3100155A8E0DC67C071F2B0F /* AppIcon40x40@2x.png in Resources */,
+				B78592DBE7F4119397F56777 /* AppIcon40x40@3x.png in Resources */,
+				49B8A29318A72EBA496CC05C /* AppIcon60x60@2x.png in Resources */,
+				CE7B119CDCB5B54A37C9BE2D /* AppIcon60x60@3x.png in Resources */,
+				440FBC8AD8FDD9EBA0D1B29E /* HeroIcon.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		23E779768E07D06AF9709588 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				65AFD7E6F44EB6AC7B30117F /* ComposerViewModel.swift in Sources */,
+				75769E42BC6143C0EA5BD50F /* ContentView.swift in Sources */,
+				7A633C49D905CEB99BEB6408 /* DraftGenerator.swift in Sources */,
+				F4AB24FB4E6D199DD2A27F6F /* SpeechCommandRecognizer.swift in Sources */,
+				1D9CF40FFB17F644048764F1 /* VozMCPApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		98540480C255808208619C53 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1BCB4DC94E34572356448557 /* DraftGenerator.swift in Sources */,
+				8E4A48F0681C1AEF62840EAC /* KeyboardSpeechRecognizer.swift in Sources */,
+				08DDD0552BE03B396438D9AB /* KeyboardViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		9D6A1A6E321C4877B90D4E85 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F877D078C04177584D345002 /* VozMCPKeyboard */;
+			targetProxy = C5EC5CE3F384B01159A9C889 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		39DCFA47692BD539411B1CD2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 73HPGSC9QX;
+				INFOPLIST_FILE = KeyboardExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.adrianoalmeida.VozMCP.Keyboard;
+				PRODUCT_NAME = "Voz MCP Keyboard";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		5039FDAD7C27721038B3F479 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		5072127897BDA9F74ACC619F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		CACC3E4576119B4BB74F43EE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 73HPGSC9QX;
+				INFOPLIST_FILE = VozMCPApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.adrianoalmeida.VozMCP;
+				PRODUCT_NAME = "Voz MCP";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		D888938B19515BFBA1149B6B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 73HPGSC9QX;
+				INFOPLIST_FILE = VozMCPApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.adrianoalmeida.VozMCP;
+				PRODUCT_NAME = "Voz MCP";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		DAAF7DAE2A628729F28DA107 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 73HPGSC9QX;
+				INFOPLIST_FILE = KeyboardExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.adrianoalmeida.VozMCP.Keyboard;
+				PRODUCT_NAME = "Voz MCP Keyboard";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		69A55141BE8946F24FD5EE40 /* Build configuration list for PBXProject "VozMCP" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5039FDAD7C27721038B3F479 /* Debug */,
+				5072127897BDA9F74ACC619F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A2A46D61660E13B092CA15DD /* Build configuration list for PBXNativeTarget "VozMCPKeyboard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				39DCFA47692BD539411B1CD2 /* Debug */,
+				DAAF7DAE2A628729F28DA107 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FDBEA40857C1A0CB9E02D25C /* Build configuration list for PBXNativeTarget "VozMCP" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D888938B19515BFBA1149B6B /* Debug */,
+				CACC3E4576119B4BB74F43EE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = F91273E6F46F9AC3F8B75BFB /* Project object */;
+}

@@ -1,0 +1,95 @@
+name: VozMCP
+options:
+  bundleIdPrefix: com.adrianoalmeida
+  deploymentTarget:
+    iOS: "26.0"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    GENERATE_INFOPLIST_FILE: NO
+targets:
+  VozMCP:
+    type: application
+    platform: iOS
+    sources:
+      - path: VozMCPApp
+        excludes:
+          - Assets.xcassets
+    info:
+      path: VozMCPApp/Info.plist
+      properties:
+        CFBundleDisplayName: Voz MCP
+        CFBundleIcons:
+          CFBundlePrimaryIcon:
+            CFBundleIconFiles:
+              - AppIcon20x20
+              - AppIcon29x29
+              - AppIcon40x40
+              - AppIcon60x60
+            UIPrerenderedIcon: false
+        CFBundleURLTypes:
+          - CFBundleURLName: com.adrianoalmeida.VozMCP
+            CFBundleURLSchemes:
+              - vozmcp
+        LSRequiresIPhoneOS: true
+        NSMicrophoneUsageDescription: O Voz MCP usa o microfone para ouvir seu pedido e transformar em uma mensagem.
+        NSSpeechRecognitionUsageDescription: O Voz MCP usa reconhecimento de fala para transcrever seus comandos em portugues do Brasil.
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.adrianoalmeida.VozMCP
+        PRODUCT_NAME: Voz MCP
+        TARGETED_DEVICE_FAMILY: 1
+        DEVELOPMENT_TEAM: 73HPGSC9QX
+        CODE_SIGN_STYLE: Automatic
+    dependencies:
+      - target: VozMCPKeyboard
+        embed: true
+  VozMCPKeyboard:
+    type: app-extension
+    platform: iOS
+    sources:
+      - KeyboardExtension
+      - path: VozMCPApp/DraftGenerator.swift
+        excludes:
+          - ComposerViewModel.swift
+          - ContentView.swift
+          - SpeechCommandRecognizer.swift
+          - VozMCPApp.swift
+    info:
+      path: KeyboardExtension/Info.plist
+      properties:
+        CFBundleDisplayName: Voz MCP
+        NSMicrophoneUsageDescription: O teclado Voz MCP usa o microfone para transformar sua fala em mensagem sem sair do app atual.
+        NSSpeechRecognitionUsageDescription: O teclado Voz MCP usa reconhecimento de fala local para entender comandos em portugues do Brasil.
+        NSExtension:
+          NSExtensionAttributes:
+            IsASCIICapable: false
+            PrefersRightToLeft: false
+            PrimaryLanguage: pt-BR
+            RequestsOpenAccess: true
+          NSExtensionPointIdentifier: com.apple.keyboard-service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).KeyboardViewController
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.adrianoalmeida.VozMCP.Keyboard
+        PRODUCT_NAME: Voz MCP Keyboard
+        APPLICATION_EXTENSION_API_ONLY: YES
+        TARGETED_DEVICE_FAMILY: 1
+        DEVELOPMENT_TEAM: 73HPGSC9QX
+        CODE_SIGN_STYLE: Automatic
+schemes:
+  VozMCP:
+    build:
+      targets:
+        VozMCP: all
+    run:
+      config: Debug
+      executable: VozMCP
+    archive:
+      config: Release
