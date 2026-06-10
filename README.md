@@ -145,7 +145,24 @@ xcrun devicectl device process launch \
 - `VozMCPApp/SpeechCommandRecognizer.swift`: ditado on-device no app principal.
 - `KeyboardExtension/KeyboardViewController.swift`: UI e fluxo do teclado.
 - `KeyboardExtension/KeyboardSpeechRecognizer.swift`: experimento de speech no teclado; atualmente nao e usado pelo fluxo principal.
+- `Scripts/ValidateDrafts.swift`: validacao local dos exemplos criticos de resposta e receita.
 - `project.yml`: fonte do projeto XcodeGen.
+
+## Validacao do motor de texto
+
+Antes de instalar uma nova versao, rode:
+
+```sh
+swiftc VozMCPApp/DraftGenerator.swift Scripts/ValidateDrafts.swift -o /tmp/ValidateDrafts
+/tmp/ValidateDrafts
+```
+
+Essa validacao cobre os casos que mais importam agora:
+
+- Boa noite + falar pela manha + codigo do produto.
+- Receita completa de bolo de fuba.
+- Receita curta de bolo de fuba.
+- Mensagem carinhosa de saudade sem inverter quem esta sentindo saudade.
 
 ## Prioridades para o proximo modelo
 

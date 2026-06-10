@@ -85,6 +85,15 @@ Hoje ele cobre melhor:
 - Pedido envolvendo codigo do produto pela manha.
 - Normalizacao de "ele" para "voce" em respostas direcionadas.
 - Comandos compostos com tamanho curto/medio/completo.
+- Tom inferido a partir do comando: carinhoso, elegante, direto ou natural.
+- Mensagem de saudade sem inverter o sujeito do sentimento.
+
+Foi adicionado `Scripts/ValidateDrafts.swift` para validar exemplos criticos:
+
+```sh
+swiftc VozMCPApp/DraftGenerator.swift Scripts/ValidateDrafts.swift -o /tmp/ValidateDrafts
+/tmp/ValidateDrafts
+```
 
 Foi adicionada validacao para descartar respostas ruins do modelo quando:
 

@@ -122,6 +122,7 @@ struct DraftIntent: Equatable {
     let cleanedCommand: String
     let kind: DraftKind
     let length: DraftLength
+    let toneOverride: ReplyTone?
     let mustInclude: [String]
     let mustIncludeGroups: [[String]]
     let subject: String?
@@ -188,7 +189,8 @@ struct DraftGenerator {
 
     func generate(_ request: DraftRequest) async -> DraftResult {
         let intent = DraftIntentAnalyzer.analyze(request)
-        let fallback = SmartLocalComposer.compose(intent: intent, tone: request.tone)
+        let effectiveTone = intent.toneOverride ?? request.tone
+        let fallback = SmartLocalComposer.compose(intent: intent, tone: effectiveTone)
 
         #if canImport(FoundationModels)
         if #available(iOS 26.0, *) {
@@ -201,7 +203,7 @@ struct DraftGenerator {
             do {
                 let session = LanguageModelSession(model: model, instructions: systemInstructions)
                 let response = try await session.respond(
-                    to: prompt(for: request, intent: intent),
+                    to: prompt(for: request, intent: intent, tone: effectiveTone),
                     options: GenerationOptions(temperature: 0.22, maximumResponseTokens: intent.length.tokenBudget)
                 )
                 let cleaned = cleanModelOutput(response.content)
@@ -246,11 +248,11 @@ struct DraftGenerator {
         """
     }
 
-    private func prompt(for request: DraftRequest, intent: DraftIntent) -> String {
+    private func prompt(for request: DraftRequest, intent: DraftIntent, tone: ReplyTone) -> String {
         let context = request.context.trimmingCharacters(in: .whitespacesAndNewlines)
         return """
         Tipo de texto: \(intent.kind)
-        Tom: \(request.tone.instruction)
+        Tom: \(tone.instruction)
         Tamanho: \(intent.length.title)
         Regra de tamanho: \(intent.length.instruction)
 
@@ -287,6 +289,7 @@ enum DraftIntentAnalyzer {
         let folded = fold(cleaned + " " + request.context)
         let kind = inferKind(from: folded)
         let length = inferLength(from: folded, kind: kind)
+        let tone = inferTone(from: folded)
         let subject = inferSubject(from: folded)
         let mustInclude = inferRequiredTerms(from: folded, kind: kind, subject: subject)
         let groups = inferRequiredGroups(from: folded, kind: kind)
@@ -296,6 +299,7 @@ enum DraftIntentAnalyzer {
             cleanedCommand: cleaned,
             kind: kind,
             length: length,
+            toneOverride: tone,
             mustInclude: mustInclude,
             mustIncludeGroups: groups,
             subject: subject
@@ -325,12 +329,31 @@ enum DraftIntentAnalyzer {
         return kind == .recipe ? .long : .medium
     }
 
+    private static func inferTone(from folded: String) -> ReplyTone? {
+        if folded.contains("carinhos") || folded.contains("fof") || folded.contains("amoros") || folded.contains("com carinho") {
+            return .carinhoso
+        }
+        if folded.contains("elegant") || folded.contains("polid") || folded.contains("profissional") || folded.contains("madur") {
+            return .elegante
+        }
+        if folded.contains("diret") || folded.contains("objetiv") || folded.contains("sem enrolar") || folded.contains("sem floreio") {
+            return .direto
+        }
+        if folded.contains("natural") || folded.contains("normal") || folded.contains("conversad") {
+            return .natural
+        }
+        return nil
+    }
+
     private static func inferSubject(from folded: String) -> String? {
         if folded.contains("bolo") && folded.contains("fuba") {
             return "bolo de fubá"
         }
         if folded.contains("codigo") && folded.contains("produto") {
             return "codigo do produto"
+        }
+        if let recipeSubject = recipeSubject(in: folded) {
+            return recipeSubject
         }
         if let recipeSubject = phrase(after: "receita de", in: folded) {
             return recipeSubject
@@ -361,6 +384,13 @@ enum DraftIntentAnalyzer {
         }
         if folded.contains("saudade") {
             terms.append("saudade")
+        }
+        if folded.contains("estou com saudade") || folded.contains("to com saudade") || folded.contains("tô com saudade") {
+            terms.append("estou com saudade")
+        }
+        if (kind == .reply || kind == .freeform) &&
+            (folded.contains("com ele") || folded.contains("pra ele") || folded.contains("para ele") || folded.contains("ver ele") || folded.contains("ve ele")) {
+            terms.append("você")
         }
         if kind == .recipe {
             terms.append("ingredientes")
@@ -423,6 +453,28 @@ enum DraftIntentAnalyzer {
         return phrase.isEmpty ? nil : phrase
     }
 
+    private static func recipeSubject(in text: String) -> String? {
+        guard let recipeRange = text.range(of: "receita") else { return nil }
+        var tail = String(text[recipeRange.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
+        let removable = ["completa", "completo", "curta", "curto", "grande", "detalhada", "detalhado", "rapida", "rapido", "simples"]
+        for word in removable {
+            if tail.hasPrefix(word) {
+                tail.removeFirst(word.count)
+                tail = tail.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+        }
+        guard tail.hasPrefix("de ") else { return nil }
+        tail.removeFirst(3)
+        let stops = [",", ".", " com ", " para ", " pra ", " e "]
+        for stop in stops {
+            if let stopRange = tail.range(of: stop) {
+                tail = String(tail[..<stopRange.lowerBound])
+            }
+        }
+        tail = tail.trimmingCharacters(in: .whitespacesAndNewlines)
+        return tail.isEmpty ? nil : tail
+    }
+
     private static func unique(_ values: [String]) -> [String] {
         var seen = Set<String>()
         return values.filter { value in
@@ -439,6 +491,14 @@ enum DraftQualityGate {
         let folded = fold(text)
 
         if intent.length == .long && text.count < 420 {
+            return false
+        }
+        if intent.kind == .reply && intent.length == .medium && intent.mustInclude.count >= 3 && text.count < 110 {
+            return false
+        }
+        if intent.mustInclude.contains(where: { fold($0) == "saudade" }) &&
+            intent.mustInclude.contains(where: { fold($0) == "voce" }) &&
+            text.count < 55 {
             return false
         }
 
@@ -558,12 +618,15 @@ enum SmartLocalComposer {
     }
 
     private static func instruction(intent: DraftIntent, tone: ReplyTone) -> String {
-        let text = sentence(from: intent.cleanedCommand)
+        let text = extractedMessage(from: intent.cleanedCommand).map(sentence(from:)) ?? sentence(from: intent.cleanedCommand)
         return polish(text, tone: tone)
     }
 
     private static func freeform(intent: DraftIntent, tone: ReplyTone) -> String {
-        polish(sentence(from: intent.cleanedCommand), tone: tone)
+        if let extracted = extractedMessage(from: intent.cleanedCommand) {
+            return polish(sentence(from: normalizeAddressing(extracted)), tone: tone)
+        }
+        return polish(sentence(from: normalizeAddressing(intent.cleanedCommand)), tone: tone)
     }
 
     private static func extractedMessage(from text: String) -> String? {
@@ -571,7 +634,7 @@ enum SmartLocalComposer {
             "responda dizendo que", "responde dizendo que", "responda que", "responde que",
             "responda pra ele que", "responde pra ele que", "responda para ele que", "responde para ele que",
             "diga que", "diga pra ele que", "fale que", "fala pra ele que", "mande que", "manda pra ele que",
-            "escreva que", "escreve que"
+            "escreva que", "escreve que", "dizendo que", "falando que"
         ]
 
         for marker in markers {
@@ -618,6 +681,9 @@ enum SmartLocalComposer {
             "com ele": "com você",
             "pra ele": "para você",
             "para ele": "para você",
+            "ver ele": "ver você",
+            "vê ele": "ver você",
+            "ve ele": "ver você",
             "dele": "seu",
             "ele tenha": "você tenha"
         ]
@@ -661,10 +727,17 @@ enum SmartLocalComposer {
 
         switch tone {
         case .direto:
-            return output.replacingOccurrences(of: "com calma. Também", with: "com calma. Também")
+            return output
+                .replacingOccurrences(of: " com calma", with: "", options: [.caseInsensitive])
+                .replacingOccurrences(of: " direitinho", with: "", options: [.caseInsensitive])
         case .elegante:
-            return output.replacingOccurrences(of: "direitinho", with: "corretamente")
+            return output
+                .replacingOccurrences(of: "direitinho", with: "corretamente")
+                .replacingOccurrences(of: "cedo", with: "pela manhã")
         case .carinhoso:
+            if fold(output).contains("saudade") && !fold(output).contains("meu amor") {
+                return output.replacingOccurrences(of: ".", with: ", meu amor.", options: [], range: output.range(of: ".", options: .backwards))
+            }
             return output
         case .natural:
             return output
