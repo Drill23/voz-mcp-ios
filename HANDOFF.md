@@ -88,12 +88,14 @@ Hoje ele cobre melhor:
 - Tom inferido a partir do comando: carinhoso, elegante, direto ou natural.
 - Mensagem de saudade sem inverter o sujeito do sentimento.
 
-Foi adicionado `Scripts/ValidateDrafts.swift` para validar exemplos criticos:
+Foi adicionado `Scripts/ValidateDrafts.swift` para validar exemplos criticos e o parser do teclado:
 
 ```sh
-swiftc VozMCPApp/DraftGenerator.swift Scripts/ValidateDrafts.swift -o /tmp/ValidateDrafts
+swiftc VozMCPApp/DraftGenerator.swift KeyboardExtension/KeyboardCommandParser.swift Scripts/ValidateDrafts.swift -o /tmp/ValidateDrafts
 /tmp/ValidateDrafts
 ```
+
+`KeyboardExtension/KeyboardCommandParser.swift` separa a extracao de comandos da UI do teclado. Ele valida `voz mcp ...`, comandos implicitos que comecam com verbos como `escreva` ou `responda`, e evita tratar texto normal como comando.
 
 Foi adicionada validacao para descartar respostas ruins do modelo quando:
 

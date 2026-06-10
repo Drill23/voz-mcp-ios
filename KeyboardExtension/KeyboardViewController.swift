@@ -171,24 +171,8 @@ final class KeyboardViewController: UIInputViewController {
         }
     }
 
-    private func extractCommand(from context: String) -> (text: String, charactersToDelete: Int)? {
-        let triggers = ["voz mcp", "vos mcp", "vós mcp", "mcp"]
-        for trigger in triggers {
-            if let range = context.range(of: trigger, options: [.caseInsensitive, .diacriticInsensitive, .backwards]) {
-                let rawCommand = String(context[range.lowerBound...])
-                let command = String(context[range.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !command.isEmpty else { return nil }
-                return (command, rawCommand.count)
-            }
-        }
-
-        let trimmed = context.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard (6...700).contains(trimmed.count) else { return nil }
-        let markers = ["escrev", "respond", "manda", "mande", "diga", "fale", "receita", "passo a passo"]
-        let hasCommand = markers.contains { marker in
-            trimmed.range(of: marker, options: [.caseInsensitive, .diacriticInsensitive]) != nil
-        }
-        return hasCommand ? (trimmed, context.count) : nil
+    private func extractCommand(from context: String) -> KeyboardCommandExtraction? {
+        KeyboardCommandParser.extract(from: context)
     }
 
     private func configureTransformButton() {

@@ -92,10 +92,57 @@ struct ValidateDrafts {
         }
 
         if failures.isEmpty {
-            print("All draft validations passed.")
+            failures += validateKeyboardParser()
+        }
+
+        if failures.isEmpty {
+            print("All draft and keyboard validations passed.")
         } else {
             fputs(failures.joined(separator: "\n") + "\n", stderr)
             exit(1)
+        }
+    }
+
+    private static func validateKeyboardParser() -> [String] {
+        var failures: [String] = []
+
+        let triggeredContext = "Tudo bem. voz mcp responda dizendo que amanhã eu mando o código do produto"
+        if let extraction = KeyboardCommandParser.extract(from: triggeredContext) {
+            assertEqual("trigger command text", extraction.text, "responda dizendo que amanhã eu mando o código do produto", &failures)
+            assertEqual("trigger source", extraction.source, .trigger, &failures)
+            assertEqual("trigger delete count", extraction.charactersToDelete, "voz mcp responda dizendo que amanhã eu mando o código do produto".count, &failures)
+        } else {
+            failures.append("trigger command: parser returned nil")
+        }
+
+        let implicitContext = "escreva uma receita completa de bolo de fubá"
+        if let extraction = KeyboardCommandParser.extract(from: implicitContext) {
+            assertEqual("implicit command text", extraction.text, implicitContext, &failures)
+            assertEqual("implicit source", extraction.source, .implicitCommand, &failures)
+            assertEqual("implicit delete count", extraction.charactersToDelete, implicitContext.count, &failures)
+        } else {
+            failures.append("implicit command: parser returned nil")
+        }
+
+        let normalDraft = "Acho que amanhã a gente fala sobre o produto com calma"
+        if KeyboardCommandParser.extract(from: normalDraft) != nil {
+            failures.append("normal draft should not be treated as command")
+        }
+
+        let incompleteTrigger = "voz mcp "
+        if KeyboardCommandParser.extract(from: incompleteTrigger) != nil {
+            failures.append("incomplete trigger should not be treated as command")
+        }
+
+        if failures.isEmpty {
+            print("Keyboard parser validations passed.")
+        }
+        return failures
+    }
+
+    private static func assertEqual<T: Equatable>(_ name: String, _ actual: T, _ expected: T, _ failures: inout [String]) {
+        if actual != expected {
+            failures.append("\(name): expected \(expected), got \(actual)")
         }
     }
 

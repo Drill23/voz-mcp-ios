@@ -144,6 +144,7 @@ xcrun devicectl device process launch \
 - `VozMCPApp/DraftGenerator.swift`: motor de escrita, Foundation Models e fallback.
 - `VozMCPApp/SpeechCommandRecognizer.swift`: ditado on-device no app principal.
 - `KeyboardExtension/KeyboardViewController.swift`: UI e fluxo do teclado.
+- `KeyboardExtension/KeyboardCommandParser.swift`: extracao testavel de comandos no campo ativo.
 - `KeyboardExtension/KeyboardSpeechRecognizer.swift`: experimento de speech no teclado; atualmente nao e usado pelo fluxo principal.
 - `Scripts/ValidateDrafts.swift`: validacao local dos exemplos criticos de resposta e receita.
 - `project.yml`: fonte do projeto XcodeGen.
@@ -153,7 +154,7 @@ xcrun devicectl device process launch \
 Antes de instalar uma nova versao, rode:
 
 ```sh
-swiftc VozMCPApp/DraftGenerator.swift Scripts/ValidateDrafts.swift -o /tmp/ValidateDrafts
+swiftc VozMCPApp/DraftGenerator.swift KeyboardExtension/KeyboardCommandParser.swift Scripts/ValidateDrafts.swift -o /tmp/ValidateDrafts
 /tmp/ValidateDrafts
 ```
 
@@ -163,6 +164,7 @@ Essa validacao cobre os casos que mais importam agora:
 - Receita completa de bolo de fuba.
 - Receita curta de bolo de fuba.
 - Mensagem carinhosa de saudade sem inverter quem esta sentindo saudade.
+- Parser do teclado para `voz mcp ...`, comando implicito e texto normal que nao deve ser apagado.
 
 ## Prioridades para o proximo modelo
 

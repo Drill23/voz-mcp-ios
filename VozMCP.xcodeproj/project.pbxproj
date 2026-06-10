@@ -21,6 +21,7 @@
 		7A633C49D905CEB99BEB6408 /* DraftGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62EA8387421072B6A1C608A4 /* DraftGenerator.swift */; };
 		80960D6E190612D76C344C4C /* AppIcon29x29@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F078988E0AABB844A4D2D29D /* AppIcon29x29@2x.png */; };
 		8E4A48F0681C1AEF62840EAC /* KeyboardSpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E4D7A7BB1BA0F9A963F3FC /* KeyboardSpeechRecognizer.swift */; };
+		8E4CDBCFD340A13B6A052252 /* KeyboardCommandParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CE768E110CBE3414D0169B /* KeyboardCommandParser.swift */; };
 		B78592DBE7F4119397F56777 /* AppIcon40x40@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 2F3AE65CFB8F4E7FFDD1BEDB /* AppIcon40x40@3x.png */; };
 		BBADEF5E6240E6E5319DB30F /* VozMCPKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = ABDEB9DE4592942AD98CA30D /* VozMCPKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CE7B119CDCB5B54A37C9BE2D /* AppIcon60x60@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50110D15B9FDBB231856300A /* AppIcon60x60@3x.png */; };
@@ -63,6 +64,7 @@
 		808EFC28B213EAA85491EDE7 /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardViewController.swift; sourceTree = "<group>"; };
 		81C5EAA46F0201742BF90756 /* VozMCPApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VozMCPApp.swift; sourceTree = "<group>"; };
 		89294AFAD891EB6A5314A7E8 /* AppIcon40x40@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon40x40@2x.png"; sourceTree = "<group>"; };
+		99CE768E110CBE3414D0169B /* KeyboardCommandParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardCommandParser.swift; sourceTree = "<group>"; };
 		9E122C9F07CB0DDF67A4B9F5 /* AppIcon29x29@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon29x29@3x.png"; sourceTree = "<group>"; };
 		ABDEB9DE4592942AD98CA30D /* VozMCPKeyboard.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = VozMCPKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B7A77B913F40BA7020B496FB /* VozMCP.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = VozMCP.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -97,6 +99,7 @@
 			isa = PBXGroup;
 			children = (
 				CB5099F991934933D2C64739 /* Info.plist */,
+				99CE768E110CBE3414D0169B /* KeyboardCommandParser.swift */,
 				50E4D7A7BB1BA0F9A963F3FC /* KeyboardSpeechRecognizer.swift */,
 				808EFC28B213EAA85491EDE7 /* KeyboardViewController.swift */,
 			);
@@ -249,6 +252,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1BCB4DC94E34572356448557 /* DraftGenerator.swift in Sources */,
+				8E4CDBCFD340A13B6A052252 /* KeyboardCommandParser.swift in Sources */,
 				8E4A48F0681C1AEF62840EAC /* KeyboardSpeechRecognizer.swift in Sources */,
 				08DDD0552BE03B396438D9AB /* KeyboardViewController.swift in Sources */,
 			);
