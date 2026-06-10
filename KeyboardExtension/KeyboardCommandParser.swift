@@ -58,9 +58,12 @@ enum KeyboardCommandParser {
             "faz",
             "faca",
             "faça",
+            "peca",
+            "peça",
             "reescrev",
             "melhore",
-            "receita"
+            "receita",
+            "desculp"
         ].contains { folded.hasPrefix($0) }
 
         let conversationalCommand = [

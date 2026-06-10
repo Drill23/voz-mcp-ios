@@ -13,6 +13,7 @@ Este repositorio contem:
 - Gerador compartilhado com tentativa de usar `FoundationModels` / Apple Intelligence local.
 - Fallback local estruturado em portugues do Brasil, com analise de intencao, tamanho, checklist obrigatorio e controle de qualidade.
 - Interface principal SwiftUI refeita com NavigationStack, materiais nativos, ScrollView e botao de voz animado.
+- Atalhos visuais discretos para testar rapidamente boa noite, codigo, receita, saudade e desculpa.
 - Teclado compacto com acao principal `Transformar`, seletor Auto/Curta/Completa e indicador de energia animado.
 - Icones e imagem de orbe no estilo Siri/Liquid Glass.
 - Projeto gerado por XcodeGen.
@@ -164,7 +165,10 @@ Essa validacao cobre os casos que mais importam agora:
 - Receita completa de bolo de fuba.
 - Receita curta de bolo de fuba.
 - Mensagem carinhosa de saudade sem inverter quem esta sentindo saudade.
+- Mensagem elegante de desculpa por atraso sem repetir a instrucao literal.
 - Parser do teclado para `voz mcp ...`, comando implicito e texto normal que nao deve ser apagado.
+
+O script usa `forceLocalComposer: true` nos casos de texto para manter a validacao deterministica no Mac, mesmo quando Foundation Models estiver disponivel.
 
 ## Prioridades para o proximo modelo
 

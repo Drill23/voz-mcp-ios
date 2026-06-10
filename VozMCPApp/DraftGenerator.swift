@@ -8,6 +8,14 @@ struct DraftRequest {
     let command: String
     let context: String
     let tone: ReplyTone
+    let forceLocalComposer: Bool
+
+    init(command: String, context: String, tone: ReplyTone, forceLocalComposer: Bool = false) {
+        self.command = command
+        self.context = context
+        self.tone = tone
+        self.forceLocalComposer = forceLocalComposer
+    }
 }
 
 struct DraftResult {
@@ -191,6 +199,13 @@ struct DraftGenerator {
         let intent = DraftIntentAnalyzer.analyze(request)
         let effectiveTone = intent.toneOverride ?? request.tone
         let fallback = SmartLocalComposer.compose(intent: intent, tone: effectiveTone)
+        if request.forceLocalComposer {
+            return DraftResult(
+                text: fallback,
+                engine: .localComposer,
+                diagnostic: "Validacao local deterministica."
+            )
+        }
 
         #if canImport(FoundationModels)
         if #available(iOS 26.0, *) {
@@ -313,7 +328,7 @@ enum DraftIntentAnalyzer {
         if folded.contains("passo a passo") || folded.contains("tutorial") || folded.contains("como fazer") {
             return .instruction
         }
-        if folded.contains("respond") || folded.contains("responda") || folded.contains("diga") || folded.contains("fale") || folded.contains("mande") {
+        if folded.contains("respond") || folded.contains("responda") || folded.contains("diga") || folded.contains("fale") || folded.contains("mande") || folded.contains("peca") || folded.contains("peça") {
             return .reply
         }
         return .freeform
@@ -384,6 +399,15 @@ enum DraftIntentAnalyzer {
         }
         if folded.contains("saudade") {
             terms.append("saudade")
+        }
+        if folded.contains("desculp") {
+            terms.append("desculpa")
+        }
+        if folded.contains("atras") {
+            terms.append("atraso")
+        }
+        if folded.contains("responder") || folded.contains("respondo") || folded.contains("resposta") {
+            terms.append("responder")
         }
         if folded.contains("estou com saudade") || folded.contains("to com saudade") || folded.contains("tô com saudade") {
             terms.append("estou com saudade")
@@ -545,6 +569,10 @@ enum SmartLocalComposer {
     private static func reply(intent: DraftIntent, tone: ReplyTone) -> String {
         let folded = fold(intent.cleanedCommand)
 
+        if folded.contains("desculp") {
+            return polish(apology(intent: intent), tone: tone)
+        }
+
         if folded.contains("codigo") && folded.contains("produto") && (folded.contains("manha") || folded.contains("amanha")) {
             return polish(buildReplyFromRequirements(intent: intent), tone: tone)
         }
@@ -623,6 +651,9 @@ enum SmartLocalComposer {
     }
 
     private static func freeform(intent: DraftIntent, tone: ReplyTone) -> String {
+        if fold(intent.cleanedCommand).contains("desculp") {
+            return polish(apology(intent: intent), tone: tone)
+        }
         if let extracted = extractedMessage(from: intent.cleanedCommand) {
             return polish(sentence(from: normalizeAddressing(extracted)), tone: tone)
         }
@@ -634,6 +665,7 @@ enum SmartLocalComposer {
             "responda dizendo que", "responde dizendo que", "responda que", "responde que",
             "responda pra ele que", "responde pra ele que", "responda para ele que", "responde para ele que",
             "diga que", "diga pra ele que", "fale que", "fala pra ele que", "mande que", "manda pra ele que",
+            "peça que", "peca que", "peça pra ele que", "peca pra ele que", "peça para ele que", "peca para ele que",
             "escreva que", "escreve que", "dizendo que", "falando que"
         ]
 
@@ -643,6 +675,34 @@ enum SmartLocalComposer {
             }
         }
         return nil
+    }
+
+    private static func apology(intent: DraftIntent) -> String {
+        let folded = fold(intent.cleanedCommand)
+        var parts = ["Me desculpa"]
+
+        if folded.contains("atras") {
+            parts[0] += " pelo atraso"
+        }
+        if folded.contains("responder") || folded.contains("respondo") || folded.contains("resposta") {
+            if folded.contains("hoje") {
+                parts.append("Eu vou te responder com calma ainda hoje")
+            } else {
+                parts.append("Eu vou te responder com calma assim que eu conseguir")
+            }
+        }
+        if folded.contains("calma") && !parts.contains(where: { fold($0).contains("calma") }) {
+            parts.append("Quero te responder com calma e atenção")
+        }
+        if folded.contains("elegant") || folded.contains("polid") {
+            parts.append("Agradeço pela paciência")
+        }
+
+        var text = parts.joined(separator: ". ")
+        if !text.hasSuffix(".") {
+            text.append(".")
+        }
+        return text
     }
 
     private static func buildReplyFromRequirements(intent: DraftIntent) -> String {
@@ -695,7 +755,7 @@ enum SmartLocalComposer {
 
     private static func sentence(from text: String) -> String {
         var output = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        let prefixes = ["voz mcp", "escreva", "escreve", "mande", "manda", "fale", "fala", "diga"]
+        let prefixes = ["voz mcp", "escreva", "escreve", "mande", "manda", "fale", "fala", "diga", "peça", "peca"]
         for prefix in prefixes where fold(output).hasPrefix(prefix) {
             output.removeFirst(min(prefix.count, output.count))
             output = output.trimmingCharacters(in: .whitespacesAndNewlines)

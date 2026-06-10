@@ -40,6 +40,7 @@ Foi refeito novamente em `VozMCPApp/ContentView.swift` com:
 - `NavigationStack` nativo.
 - Fundo claro/escuro usando `systemGroupedBackground` e materiais do sistema.
 - Botao de voz animado menor e mais iOS.
+- Atalhos horizontais discretos para exemplos criticos: boa noite, codigo, receita, saudade e desculpa.
 - ScrollView para evitar tela cortada.
 - Campo principal e resultado.
 - Menos texto tecnico visivel e controles com raio menor.
@@ -87,6 +88,7 @@ Hoje ele cobre melhor:
 - Comandos compostos com tamanho curto/medio/completo.
 - Tom inferido a partir do comando: carinhoso, elegante, direto ou natural.
 - Mensagem de saudade sem inverter o sujeito do sentimento.
+- Mensagem de desculpa por atraso com fechamento polido.
 
 Foi adicionado `Scripts/ValidateDrafts.swift` para validar exemplos criticos e o parser do teclado:
 

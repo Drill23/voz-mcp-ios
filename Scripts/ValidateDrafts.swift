@@ -18,7 +18,8 @@ struct ValidateDrafts {
                 request: DraftRequest(
                     command: "responda dizendo que eu vou falar com ele pela manhã, deu um boa noite, e diga que eu preciso do código do produto amanhã cedo",
                     context: "Boa noite meu amor, te amo. Amanhã a gente se fala.",
-                    tone: .natural
+                    tone: .natural,
+                    forceLocalComposer: true
                 ),
                 requiredFragments: ["boa noite", "amanhã", "código do produto", "você"],
                 forbiddenFragments: ["diga que", "responda", "ele pela manhã"],
@@ -30,7 +31,8 @@ struct ValidateDrafts {
                 request: DraftRequest(
                     command: "escreva uma receita completa grande de bolo de fubá com ingredientes e modo de preparo",
                     context: "Ele perguntou como faz bolo de fubá.",
-                    tone: .natural
+                    tone: .natural,
+                    forceLocalComposer: true
                 ),
                 requiredFragments: ["ingredientes", "modo de preparo", "rendimento", "bolo de fubá"],
                 forbiddenFragments: ["não sei", "me diga"],
@@ -42,7 +44,8 @@ struct ValidateDrafts {
                 request: DraftRequest(
                     command: "escreva uma receita curta de bolo de fubá",
                     context: "",
-                    tone: .natural
+                    tone: .natural,
+                    forceLocalComposer: true
                 ),
                 requiredFragments: ["bolo de fubá", "asse"],
                 forbiddenFragments: ["modo de preparo:", "rendimento:"],
@@ -54,12 +57,26 @@ struct ValidateDrafts {
                 request: DraftRequest(
                     command: "escreve uma mensagem carinhosa dizendo que estou com saudade e queria ver ele hoje",
                     context: "",
-                    tone: .natural
+                    tone: .natural,
+                    forceLocalComposer: true
                 ),
                 requiredFragments: ["estou com saudade", "você"],
                 forbiddenFragments: ["mensagem carinhosa", "dizendo que", "você está com saudade", "que tal ver você"],
                 minimumCharacters: 45,
                 maximumCharacters: 220
+            ),
+            DraftValidationCase(
+                name: "desculpa elegante atraso",
+                request: DraftRequest(
+                    command: "Escreva uma mensagem elegante pedindo desculpas pelo atraso e dizendo que vou responder com calma ainda hoje.",
+                    context: "",
+                    tone: .natural,
+                    forceLocalComposer: true
+                ),
+                requiredFragments: ["desculpa", "atraso", "responder", "hoje"],
+                forbiddenFragments: ["pedindo desculpas", "dizendo que", "escreva"],
+                minimumCharacters: 70,
+                maximumCharacters: 260
             )
         ]
 
@@ -122,6 +139,14 @@ struct ValidateDrafts {
             assertEqual("implicit delete count", extraction.charactersToDelete, implicitContext.count, &failures)
         } else {
             failures.append("implicit command: parser returned nil")
+        }
+
+        let apologyContext = "peça desculpas pelo atraso e diga que respondo hoje"
+        if let extraction = KeyboardCommandParser.extract(from: apologyContext) {
+            assertEqual("apology command text", extraction.text, apologyContext, &failures)
+            assertEqual("apology source", extraction.source, .implicitCommand, &failures)
+        } else {
+            failures.append("apology command: parser returned nil")
         }
 
         let normalDraft = "Acho que amanhã a gente fala sobre o produto com calma"

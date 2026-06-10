@@ -98,23 +98,39 @@ final class ComposerViewModel: ObservableObject {
 struct ComposerExample: Identifiable {
     let id = UUID()
     let title: String
+    let systemImage: String
     let command: String
     let context: String
 
     static let samples = [
         ComposerExample(
             title: "Boa noite",
+            systemImage: "moon.stars",
             command: "Responda pra ele que eu também amo ele, que ele tenha uma boa noite e que amanhã a gente volta a se falar.",
             context: "Boa noite, meu amor. Te amo, amanhã a gente se fala."
         ),
         ComposerExample(
+            title: "Código",
+            systemImage: "barcode.viewfinder",
+            command: "Responda dizendo que eu vou falar com ele pela manhã, dê boa noite e diga que preciso do código do produto amanhã cedo.",
+            context: "Boa noite meu amor. Te amo, amanhã a gente se fala."
+        ),
+        ComposerExample(
             title: "Receita",
+            systemImage: "list.clipboard",
             command: "Escreva uma receita de bolo de fubá com ingredientes e passo a passo.",
             context: "Ele perguntou como faz bolo de fubá."
         ),
         ComposerExample(
             title: "Saudade",
+            systemImage: "heart",
             command: "Escreve uma mensagem carinhosa dizendo que estou com saudade e queria ver ele hoje.",
+            context: ""
+        ),
+        ComposerExample(
+            title: "Desculpa",
+            systemImage: "hand.raised",
+            command: "Escreva uma mensagem elegante pedindo desculpas pelo atraso e dizendo que vou responder com calma ainda hoje.",
             context: ""
         )
     ]

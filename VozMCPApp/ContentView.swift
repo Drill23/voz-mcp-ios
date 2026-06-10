@@ -11,6 +11,7 @@ struct ContentView: View {
                 VStack(spacing: 16) {
                     statusStrip
                     voiceControl
+                    examplesStrip
                     composerPanel
                     outputPanel
                 }
@@ -33,6 +34,15 @@ struct ContentView: View {
                         Image(systemName: "gearshape")
                     }
                     .accessibilityLabel("Ajustes")
+                }
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        viewModel.clear()
+                        focusedField = nil
+                    } label: {
+                        Image(systemName: "xmark.circle")
+                    }
+                    .accessibilityLabel("Limpar")
                 }
             }
         }
@@ -88,6 +98,33 @@ struct ContentView: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.vertical, 8)
+    }
+
+    private var examplesStrip: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(ComposerExample.samples) { example in
+                    Button {
+                        viewModel.useExample(example)
+                        focusedField = .command
+                    } label: {
+                        Label(example.title, systemImage: example.systemImage)
+                            .font(.caption.weight(.semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.82)
+                            .padding(.horizontal, 11)
+                            .padding(.vertical, 9)
+                            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .stroke(.primary.opacity(0.07), lineWidth: 1)
+                            }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 2)
+        }
     }
 
     private var composerPanel: some View {
