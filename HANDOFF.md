@@ -41,6 +41,7 @@ Foi refeito novamente em `VozMCPApp/ContentView.swift` com:
 - Fundo claro/escuro usando `systemGroupedBackground` e materiais do sistema.
 - Botao de voz animado menor e mais iOS.
 - Atalhos horizontais discretos para exemplos criticos: boa noite, codigo, receita, saudade e desculpa.
+- Seletor de modelo `Auto`, `Apple` e `Local` no painel do pedido.
 - ScrollView para evitar tela cortada.
 - Campo principal e resultado.
 - Menos texto tecnico visivel e controles com raio menor.
@@ -72,6 +73,12 @@ Na revisao mais recente o teclado ficou mais compacto:
 ### IA
 
 `DraftGenerator.swift` tenta usar `FoundationModels` quando disponivel.
+
+O app principal passa `ModelPreference` no `DraftRequest`:
+
+- `automatic`: tenta Apple Foundation Models e cai no compositor local.
+- `apple`: prefere Foundation Models e explica quando caiu para o local.
+- `local`: usa apenas `SmartLocalComposer`.
 
 Tambem ha fallback local estruturado com:
 

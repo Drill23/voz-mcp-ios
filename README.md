@@ -14,6 +14,7 @@ Este repositorio contem:
 - Fallback local estruturado em portugues do Brasil, com analise de intencao, tamanho, checklist obrigatorio e controle de qualidade.
 - Interface principal SwiftUI refeita com NavigationStack, materiais nativos, ScrollView e botao de voz animado.
 - Atalhos visuais discretos para testar rapidamente boa noite, codigo, receita, saudade e desculpa.
+- Seletor de modelo no app principal: `Auto`, `Apple` e `Local`.
 - Teclado compacto com acao principal `Transformar`, seletor Auto/Curta/Completa e indicador de energia animado.
 - Icones e imagem de orbe no estilo Siri/Liquid Glass.
 - Projeto gerado por XcodeGen.
@@ -72,6 +73,12 @@ O usuario quer uma experiencia parecida com apps como `Typeless: teclado de voz 
 - `GenerationOptions`
 
 Se o modelo estiver indisponivel, desligado, baixando, responder vazio ou responder abaixo do pedido, o app cai no compositor local.
+
+O app principal ja permite escolher:
+
+- `Auto`: tenta Foundation Models e cai no compositor local se precisar.
+- `Apple`: prefere Foundation Models; se indisponivel, informa isso e usa o compositor local.
+- `Local`: usa apenas o compositor local deterministico.
 
 ### Gemma 4
 
@@ -176,7 +183,7 @@ O script usa `forceLocalComposer: true` nos casos de texto para manter a validac
 2. Garantir que o teclado nunca feche ao tocar no botao principal.
 3. Ampliar o parser de comandos compostos para mais dominios alem dos exemplos atuais.
 4. Implementar provider real para Gemma 4 LiteRT-LM.
-5. Adicionar selecao de modelo no app principal.
+5. Implementar Gemma 4 LiteRT-LM real como provider selecionavel.
 6. Testar resposta longa, curta e media com casos reais do usuario.
 
 ## Referencias usadas

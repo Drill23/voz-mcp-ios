@@ -146,6 +146,13 @@ struct ContentView: View {
             }
             .pickerStyle(.segmented)
 
+            Picker("Modelo", selection: $viewModel.modelPreference) {
+                ForEach(ModelPreference.allCases) { preference in
+                    Label(preference.title, systemImage: preference.systemImage).tag(preference)
+                }
+            }
+            .pickerStyle(.segmented)
+
             Button {
                 focusedField = nil
                 Task { await viewModel.generateDraft() }

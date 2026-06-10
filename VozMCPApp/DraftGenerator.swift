@@ -8,12 +8,14 @@ struct DraftRequest {
     let command: String
     let context: String
     let tone: ReplyTone
+    let modelPreference: ModelPreference
     let forceLocalComposer: Bool
 
-    init(command: String, context: String, tone: ReplyTone, forceLocalComposer: Bool = false) {
+    init(command: String, context: String, tone: ReplyTone, modelPreference: ModelPreference = .automatic, forceLocalComposer: Bool = false) {
         self.command = command
         self.context = context
         self.tone = tone
+        self.modelPreference = modelPreference
         self.forceLocalComposer = forceLocalComposer
     }
 }
@@ -50,6 +52,47 @@ enum DraftEngine: Equatable {
             "Apple Intelligence local"
         case .localComposer:
             "Compositor local"
+        }
+    }
+}
+
+enum ModelPreference: String, CaseIterable, Identifiable, Equatable {
+    case automatic
+    case apple
+    case local
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .automatic:
+            "Auto"
+        case .apple:
+            "Apple"
+        case .local:
+            "Local"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .automatic:
+            "sparkles"
+        case .apple:
+            "apple.logo"
+        case .local:
+            "iphone"
+        }
+    }
+
+    var detail: String {
+        switch self {
+        case .automatic:
+            "Tenta Apple Intelligence e usa local se precisar."
+        case .apple:
+            "Prefere Foundation Models no aparelho."
+        case .local:
+            "Usa o compositor local deterministico."
         }
     }
 }
@@ -199,11 +242,11 @@ struct DraftGenerator {
         let intent = DraftIntentAnalyzer.analyze(request)
         let effectiveTone = intent.toneOverride ?? request.tone
         let fallback = SmartLocalComposer.compose(intent: intent, tone: effectiveTone)
-        if request.forceLocalComposer {
+        if request.forceLocalComposer || request.modelPreference == .local {
             return DraftResult(
                 text: fallback,
                 engine: .localComposer,
-                diagnostic: "Validacao local deterministica."
+                diagnostic: request.forceLocalComposer ? "Validacao local deterministica." : "Modo local selecionado."
             )
         }
 
@@ -212,7 +255,8 @@ struct DraftGenerator {
             let model = SystemLanguageModel.default
             guard model.isAvailable else {
                 let status = await modelStatus()
-                return DraftResult(text: fallback, engine: .localComposer, diagnostic: status.detail)
+                let prefix = request.modelPreference == .apple ? "Apple selecionado, mas indisponivel. " : ""
+                return DraftResult(text: fallback, engine: .localComposer, diagnostic: prefix + status.detail)
             }
 
             do {
@@ -248,7 +292,9 @@ struct DraftGenerator {
         return DraftResult(
             text: fallback,
             engine: .localComposer,
-            diagnostic: "Foundation Models nao esta disponivel neste SDK."
+            diagnostic: request.modelPreference == .apple
+                ? "Apple selecionado, mas Foundation Models nao esta disponivel neste SDK."
+                : "Foundation Models nao esta disponivel neste SDK."
         )
     }
 
@@ -394,7 +440,7 @@ enum DraftIntentAnalyzer {
         if folded.contains("manha") || folded.contains("amanha") {
             terms.append("amanhã")
         }
-        if folded.contains("amo") || folded.contains("ama") {
+        if containsLove(in: folded) {
             terms.append("amo")
         }
         if folded.contains("saudade") {
@@ -508,6 +554,11 @@ enum DraftIntentAnalyzer {
             return true
         }
     }
+
+    private static func containsLove(in folded: String) -> Bool {
+        let words = folded.split { !$0.isLetter }.map(String.init)
+        return words.contains("amo") || words.contains("ama") || folded.contains("te amo") || folded.contains("tambem amo") || folded.contains("também amo")
+    }
 }
 
 enum DraftQualityGate {
@@ -577,7 +628,7 @@ enum SmartLocalComposer {
             return polish(buildReplyFromRequirements(intent: intent), tone: tone)
         }
 
-        if folded.contains("boa noite") && (folded.contains("amo") || folded.contains("ama")) {
+        if folded.contains("boa noite") && containsLove(in: folded) {
             return polish("Também te amo. Boa noite, descansa bem. Amanhã a gente volta a se falar com calma.", tone: tone)
         }
 
@@ -712,7 +763,7 @@ enum SmartLocalComposer {
         if folded.contains("boa noite") {
             parts.append("Boa noite.")
         }
-        if folded.contains("amo") || folded.contains("ama") {
+        if containsLove(in: folded) {
             parts.append("Também te amo.")
         }
         if folded.contains("falar") || folded.contains("fala") || folded.contains("convers") || folded.contains("se fala") {
@@ -810,5 +861,10 @@ enum SmartLocalComposer {
 
     private static func display(_ text: String) -> String {
         text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func containsLove(in folded: String) -> Bool {
+        let words = folded.split { !$0.isLetter }.map(String.init)
+        return words.contains("amo") || words.contains("ama") || folded.contains("te amo") || folded.contains("tambem amo") || folded.contains("também amo")
     }
 }

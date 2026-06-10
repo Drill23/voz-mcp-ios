@@ -7,6 +7,12 @@ final class ComposerViewModel: ObservableObject {
     @Published var contextText = ""
     @Published var draftText = ""
     @Published var tone: ReplyTone = .natural
+    @Published var modelPreference: ModelPreference = .automatic {
+        didSet {
+            UserDefaults.standard.set(modelPreference.rawValue, forKey: Self.modelPreferenceKey)
+            statusLine = modelPreference.detail
+        }
+    }
     @Published var isRecording = false
     @Published var isGenerating = false
     @Published var modelStatus = ModelStatus.checking
@@ -16,6 +22,14 @@ final class ComposerViewModel: ObservableObject {
 
     private let speech = SpeechCommandRecognizer()
     private let generator = DraftGenerator()
+    private static let modelPreferenceKey = "modelPreference"
+
+    init() {
+        if let rawValue = UserDefaults.standard.string(forKey: Self.modelPreferenceKey),
+           let preference = ModelPreference(rawValue: rawValue) {
+            modelPreference = preference
+        }
+    }
 
     func refreshModelStatus() async {
         modelStatus = await generator.modelStatus()
@@ -54,7 +68,12 @@ final class ComposerViewModel: ObservableObject {
         statusLine = "Gerando no aparelho..."
         defer { isGenerating = false }
 
-        let request = DraftRequest(command: trimmedCommand, context: contextText, tone: tone)
+        let request = DraftRequest(
+            command: trimmedCommand,
+            context: contextText,
+            tone: tone,
+            modelPreference: modelPreference
+        )
         let result = await generator.generate(request)
         draftText = result.text
         lastEngine = result.engine

@@ -77,6 +77,19 @@ struct ValidateDrafts {
                 forbiddenFragments: ["pedindo desculpas", "dizendo que", "escreva"],
                 minimumCharacters: 70,
                 maximumCharacters: 260
+            ),
+            DraftValidationCase(
+                name: "modo local selecionado",
+                request: DraftRequest(
+                    command: "responda dizendo que amanhã cedo eu preciso do código do produto",
+                    context: "",
+                    tone: .direto,
+                    modelPreference: .local
+                ),
+                requiredFragments: ["amanhã", "código do produto"],
+                forbiddenFragments: ["responda dizendo", "Foundation Models", "te amo", "também te amo"],
+                minimumCharacters: 60,
+                maximumCharacters: 240
             )
         ]
 
