@@ -11,11 +11,13 @@ Este repositorio contem:
 - App iOS SwiftUI principal.
 - Extensao de teclado iOS (`VozMCPKeyboard`).
 - Gerador compartilhado com tentativa de usar `FoundationModels` / Apple Intelligence local.
-- Fallback local em portugues do Brasil para alguns pedidos comuns e para evitar respostas vazias ou rasas.
+- Fallback local estruturado em portugues do Brasil, com analise de intencao, tamanho, checklist obrigatorio e controle de qualidade.
+- Interface principal SwiftUI refeita com NavigationStack, materiais nativos, ScrollView e botao de voz animado.
+- Teclado compacto com acao principal `Transformar`, seletor Auto/Curta/Completa e indicador de energia animado.
 - Icones e imagem de orbe no estilo Siri/Liquid Glass.
 - Projeto gerado por XcodeGen.
 
-O build atual compila e foi instalado em um iPhone 16 Pro Max com iOS 27.0 usando assinatura de desenvolvimento local.
+O build atual compila e foi instalado em um iPhone 16 Pro Max conectado usando assinatura de desenvolvimento local.
 
 ## Fluxo atual do teclado
 
@@ -31,10 +33,10 @@ voz mcp responda dizendo que eu vou falar com ele pela manha, de boa noite, e di
 ```
 
 3. Troque para o teclado `Voz MCP`.
-4. Toque no orbe do teclado.
+4. Toque em `Transformar`.
 5. O teclado apaga o comando e insere a mensagem final no mesmo campo.
 
-Tambem ha um botao `Inserir comando`, que coloca `voz mcp ` no campo para facilitar o inicio.
+Tambem ha um botao `voz mcp`, que coloca `voz mcp ` no campo para facilitar o inicio.
 
 ## O que o usuario quer de verdade
 
@@ -102,15 +104,17 @@ Gere o projeto:
 xcodegen generate
 ```
 
-Build para dispositivo fisico:
+Build para dispositivo fisico assinado:
 
 ```sh
-rm -rf /tmp/VozMCPObj /tmp/VozMCPBuild
+rm -rf /tmp/VozMCPSignedObj /tmp/VozMCPSignedBuild
 xcodebuild -project VozMCP.xcodeproj \
   -target VozMCP \
   -sdk iphoneos \
-  OBJROOT=/tmp/VozMCPObj \
-  SYMROOT=/tmp/VozMCPBuild \
+  OBJROOT=/tmp/VozMCPSignedObj \
+  SYMROOT=/tmp/VozMCPSignedBuild \
+  DEVELOPMENT_TEAM=73HPGSC9QX \
+  CODE_SIGN_STYLE=Automatic \
   -allowProvisioningUpdates \
   -allowProvisioningDeviceRegistration \
   build
@@ -122,7 +126,7 @@ Instale em um iPhone conectado:
 xcrun devicectl list devices
 xcrun devicectl device install app \
   --device <DEVICE_ID> \
-  "/tmp/VozMCPBuild/Debug-iphoneos/Voz MCP.app"
+  "/tmp/VozMCPSignedBuild/Debug-iphoneos/Voz MCP.app"
 ```
 
 Abrir no iPhone:
@@ -145,13 +149,12 @@ xcrun devicectl device process launch \
 
 ## Prioridades para o proximo modelo
 
-1. Fazer um redesign real de teclado no estilo iOS/Typeless: simples, elegante, acessivel e estavel.
+1. Validar visualmente a nova UI no aparelho e no WhatsApp real.
 2. Garantir que o teclado nunca feche ao tocar no botao principal.
-3. Melhorar o parser de comandos compostos.
+3. Ampliar o parser de comandos compostos para mais dominios alem dos exemplos atuais.
 4. Implementar provider real para Gemma 4 LiteRT-LM.
 5. Adicionar selecao de modelo no app principal.
-6. Validar em WhatsApp real, nao so em build.
-7. Testar resposta longa, curta e media com casos reais do usuario.
+6. Testar resposta longa, curta e media com casos reais do usuario.
 
 ## Referencias usadas
 

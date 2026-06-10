@@ -6,93 +6,101 @@ struct ContentView: View {
     @FocusState private var focusedField: ComposerField?
 
     var body: some View {
-        ZStack {
-            CleanBackdrop()
-                .ignoresSafeArea()
-
+        NavigationStack {
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 24) {
-                    header
-                    orbSection
-                    composer
-                    resultSection
-                    statusSection
+                VStack(spacing: 16) {
+                    statusStrip
+                    voiceControl
+                    composerPanel
+                    outputPanel
                 }
-                .frame(maxWidth: 520)
-                .padding(.horizontal, 20)
-                .padding(.top, 18)
-                .padding(.bottom, 30)
+                .frame(maxWidth: 560)
+                .padding(.horizontal, 18)
+                .padding(.top, 12)
+                .padding(.bottom, 28)
                 .frame(maxWidth: .infinity)
             }
+            .background(AppBackdrop().ignoresSafeArea())
+            .navigationTitle("Voz MCP")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }
+                    .accessibilityLabel("Ajustes")
+                }
+            }
         }
-        .preferredColorScheme(.dark)
         .task {
             await viewModel.refreshModelStatus()
         }
     }
 
-    private var header: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "waveform")
+    private var statusStrip: some View {
+        HStack(spacing: 10) {
+            Image(systemName: viewModel.modelStatus.isReady ? "checkmark.seal.fill" : "iphone.gen3.radiowaves.left.and.right")
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 42, height: 42)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(viewModel.modelStatus.isReady ? .green : .blue)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("Voz MCP")
-                    .font(.headline.weight(.semibold))
-                Text("teclado inteligente local")
+                Text(viewModel.modelStatus.title)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                Text(viewModel.statusLine ?? viewModel.modelStatus.detail)
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.56))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
-            Spacer()
-
-            Button {
-                if let url = URL(string: UIApplication.openSettingsURLString) {
-                    UIApplication.shared.open(url)
-                }
-            } label: {
-                Image(systemName: "gearshape")
-                    .frame(width: 42, height: 42)
-            }
-            .buttonStyle(IconGlassButtonStyle())
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(.primary.opacity(0.06), lineWidth: 1)
         }
     }
 
-    private var orbSection: some View {
-        VStack(spacing: 14) {
-            SiriOrb(isActive: viewModel.isRecording || viewModel.isGenerating)
-                .frame(width: 176, height: 176)
-                .onTapGesture {
-                    Task { await viewModel.toggleRecording() }
-                }
-
-            VStack(spacing: 5) {
-                Text(viewModel.isRecording ? "Ouvindo" : "Fale seu pedido")
-                    .font(.system(size: 30, weight: .semibold, design: .rounded))
-                    .multilineTextAlignment(.center)
-                    .minimumScaleFactor(0.82)
-
-                Text(viewModel.isRecording ? "Toque de novo para parar e gerar." : "Ou dite direto no WhatsApp e use o teclado para transformar.")
-                    .font(.callout)
-                    .foregroundStyle(.white.opacity(0.58))
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: 330)
-            }
-        }
-        .padding(.top, 6)
-    }
-
-    private var composer: some View {
+    private var voiceControl: some View {
         VStack(spacing: 12) {
+            LiquidVoiceButton(isActive: viewModel.isRecording || viewModel.isGenerating) {
+                Task { await viewModel.toggleRecording() }
+            }
+
+            Text(viewModel.isRecording ? "Ouvindo" : "Toque e fale")
+                .font(.title2.weight(.semibold))
+                .lineLimit(1)
+
+            Text(viewModel.isRecording ? "Toque de novo para parar." : "Transforme voz em uma mensagem pronta.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.vertical, 8)
+    }
+
+    private var composerPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Pedido")
+                .font(.headline)
+
             PromptEditor(
                 text: $viewModel.commandText,
-                placeholder: "Ex: responda dizendo que falo com ele pela manhã, dê boa noite e peça o código do produto amanhã cedo"
+                placeholder: "Ex: responda dizendo que amanhã cedo eu preciso do código do produto"
             )
             .focused($focusedField, equals: .command)
-            .frame(minHeight: 112)
+            .frame(minHeight: 120)
 
             Picker("Tom", selection: $viewModel.tone) {
                 ForEach(ReplyTone.allCases) { tone in
@@ -105,21 +113,36 @@ struct ContentView: View {
                 focusedField = nil
                 Task { await viewModel.generateDraft() }
             } label: {
-                Label(viewModel.isGenerating ? "Gerando..." : "Gerar texto", systemImage: "sparkles")
+                Label(viewModel.isGenerating ? "Gerando" : "Gerar mensagem", systemImage: "sparkles")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(PrimaryGlassButtonStyle())
+            .buttonStyle(PrimaryActionButtonStyle())
             .disabled(viewModel.isGenerating)
+        }
+        .padding(14)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(.primary.opacity(0.06), lineWidth: 1)
         }
     }
 
     @ViewBuilder
-    private var resultSection: some View {
+    private var outputPanel: some View {
         if !viewModel.draftText.isEmpty {
-            VStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("Mensagem")
+                        .font(.headline)
+                    Spacer()
+                    Text(viewModel.lastEngine?.title ?? "Pronta")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
+                }
+
                 PromptEditor(text: $viewModel.draftText, placeholder: "")
                     .focused($focusedField, equals: .draft)
-                    .frame(minHeight: 142)
+                    .frame(minHeight: 170)
 
                 HStack(spacing: 10) {
                     Button {
@@ -128,7 +151,7 @@ struct ContentView: View {
                         Label("Copiar", systemImage: "doc.on.doc")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(QuietGlassButtonStyle())
+                    .buttonStyle(SecondaryActionButtonStyle())
 
                     Button {
                         viewModel.shareDraft()
@@ -136,21 +159,16 @@ struct ContentView: View {
                         Label("Enviar", systemImage: "square.and.arrow.up")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(QuietGlassButtonStyle())
+                    .buttonStyle(SecondaryActionButtonStyle())
                 }
             }
+            .padding(14)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(.primary.opacity(0.06), lineWidth: 1)
+            }
         }
-    }
-
-    private var statusSection: some View {
-        VStack(spacing: 8) {
-            Text(viewModel.statusLine ?? viewModel.modelStatus.detail)
-                .font(.footnote)
-                .foregroundStyle(.white.opacity(0.58))
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(.horizontal, 4)
     }
 }
 
@@ -159,81 +177,92 @@ private enum ComposerField {
     case draft
 }
 
-private struct CleanBackdrop: View {
-    var body: some View {
-        Color(red: 0.02, green: 0.025, blue: 0.032)
-            .overlay {
-                LinearGradient(
-                    colors: [
-                        Color.white.opacity(0.08),
-                        Color(red: 0.02, green: 0.64, blue: 0.68).opacity(0.11),
-                        Color(red: 0.95, green: 0.28, blue: 0.40).opacity(0.08),
-                        .clear
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            }
-    }
-}
-
-private struct SiriOrb: View {
-    let isActive: Bool
-    @State private var rotate = false
-    @State private var pulse = false
+private struct AppBackdrop: View {
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         ZStack {
-            Circle()
-                .fill(.ultraThinMaterial)
-                .overlay {
-                    Circle()
-                        .stroke(.white.opacity(0.12), lineWidth: 1)
-                }
+            Color(uiColor: .systemGroupedBackground)
 
-            Circle()
-                .stroke(
-                    AngularGradient(
-                        colors: [
-                            Color(red: 0.10, green: 0.92, blue: 0.95),
-                            .white,
-                            Color(red: 0.98, green: 0.62, blue: 0.18),
-                            Color(red: 0.92, green: 0.25, blue: 0.52),
-                            Color(red: 0.10, green: 0.92, blue: 0.95)
-                        ],
-                        center: .center
-                    ),
-                    lineWidth: isActive ? 8 : 6
-                )
-                .rotationEffect(.degrees(rotate ? 360 : 0))
-                .padding(4)
-
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            .white.opacity(isActive ? 0.26 : 0.18),
-                            Color(red: 0.08, green: 0.12, blue: 0.15).opacity(0.62),
-                            .black.opacity(0.18)
-                        ],
-                        center: .topLeading,
-                        startRadius: 8,
-                        endRadius: 92
-                    )
-                )
-                .padding(15)
-
-            Image(systemName: isActive ? "waveform" : "mic.fill")
-                .font(.system(size: 42, weight: .medium))
-                .foregroundStyle(.white)
+            LinearGradient(
+                colors: colorScheme == .dark
+                    ? [
+                        Color(red: 0.08, green: 0.10, blue: 0.13).opacity(0.95),
+                        Color(red: 0.00, green: 0.42, blue: 0.48).opacity(0.22),
+                        Color(red: 0.70, green: 0.18, blue: 0.35).opacity(0.16)
+                    ]
+                    : [
+                        Color.white.opacity(0.92),
+                        Color(red: 0.78, green: 0.95, blue: 0.96).opacity(0.55),
+                        Color(red: 1.00, green: 0.88, blue: 0.78).opacity(0.40)
+                    ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
         }
-        .scaleEffect(isActive && pulse ? 1.035 : 1)
-        .shadow(color: .cyan.opacity(isActive ? 0.32 : 0.18), radius: isActive ? 34 : 22)
-        .onAppear {
-            withAnimation(.linear(duration: 6).repeatForever(autoreverses: false)) {
-                rotate = true
+    }
+}
+
+private struct LiquidVoiceButton: View {
+    let isActive: Bool
+    let action: () -> Void
+
+    @State private var rotation = 0.0
+    @State private var pulse = false
+
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .fill(.ultraThinMaterial)
+                    .overlay {
+                        Circle()
+                            .stroke(.primary.opacity(0.08), lineWidth: 1)
+                    }
+
+                Circle()
+                    .trim(from: 0.08, to: 0.92)
+                    .stroke(
+                        AngularGradient(
+                            colors: [.cyan, .mint, .white, .orange, .pink, .cyan],
+                            center: .center
+                        ),
+                        style: StrokeStyle(lineWidth: 6, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(rotation))
+                    .padding(5)
+
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                .white.opacity(isActive ? 0.34 : 0.20),
+                                .cyan.opacity(isActive ? 0.20 : 0.12),
+                                .clear
+                            ],
+                            center: .topLeading,
+                            startRadius: 2,
+                            endRadius: 72
+                        )
+                    )
+                    .padding(15)
+
+                Image(systemName: isActive ? "waveform" : "mic.fill")
+                    .font(.system(size: 34, weight: .semibold))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(.primary)
             }
-            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+            .frame(width: 124, height: 124)
+            .scaleEffect(isActive && pulse ? 1.04 : 1)
+            .shadow(color: .cyan.opacity(isActive ? 0.28 : 0.14), radius: isActive ? 28 : 16)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(isActive ? "Parar gravação" : "Iniciar gravação")
+        .onAppear {
+            withAnimation(.linear(duration: 7).repeatForever(autoreverses: false)) {
+                rotation = 360
+            }
+            withAnimation(.easeInOut(duration: 1.1).repeatForever(autoreverses: true)) {
                 pulse = true
             }
         }
@@ -247,57 +276,51 @@ private struct PromptEditor: View {
     var body: some View {
         TextEditor(text: $text)
             .font(.body)
-            .foregroundStyle(.white)
             .tint(.cyan)
             .scrollContentBackground(.hidden)
-            .padding(13)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .padding(10)
+            .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(.white.opacity(0.10), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(.primary.opacity(0.07), lineWidth: 1)
             }
             .overlay(alignment: .topLeading) {
                 if text.isEmpty && !placeholder.isEmpty {
                     Text(placeholder)
                         .font(.body)
-                        .foregroundStyle(.white.opacity(0.34))
-                        .padding(.horizontal, 19)
-                        .padding(.vertical, 21)
+                        .foregroundStyle(.tertiary)
+                        .padding(.horizontal, 15)
+                        .padding(.vertical, 18)
                         .allowsHitTesting(false)
                 }
             }
     }
 }
 
-private struct PrimaryGlassButtonStyle: ButtonStyle {
+private struct PrimaryActionButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.headline.weight(.semibold))
-            .foregroundStyle(.black)
             .lineLimit(1)
-            .minimumScaleFactor(0.78)
-            .padding(.vertical, 15)
-            .background(.white.opacity(configuration.isPressed ? 0.74 : 0.94), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .minimumScaleFactor(0.82)
+            .foregroundStyle(.white)
+            .padding(.vertical, 14)
+            .background(Color.accentColor.opacity(configuration.isPressed ? 0.74 : 1), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 }
 
-private struct QuietGlassButtonStyle: ButtonStyle {
+private struct SecondaryActionButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(.white)
             .lineLimit(1)
-            .minimumScaleFactor(0.78)
+            .minimumScaleFactor(0.82)
+            .foregroundStyle(.primary)
             .padding(.vertical, 12)
-            .background(.white.opacity(configuration.isPressed ? 0.08 : 0.12), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-    }
-}
-
-private struct IconGlassButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(.white)
-            .background(.white.opacity(configuration.isPressed ? 0.08 : 0.12), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(.primary.opacity(configuration.isPressed ? 0.12 : 0.06), lineWidth: 1)
+            }
     }
 }

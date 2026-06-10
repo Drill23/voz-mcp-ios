@@ -1,86 +1,97 @@
 import UIKit
 
 final class KeyboardViewController: UIInputViewController {
+    private let titleLabel = UILabel()
     private let statusLabel = UILabel()
-    private let orb = SiriTransformControl()
-    private let lengthControl = UISegmentedControl(items: ["Auto", "Curto", "Completo"])
+    private let energyGlyph = EnergyGlyphView()
+    private let transformButton = UIButton(type: .system)
+    private let lengthControl = UISegmentedControl(items: ["Auto", "Curta", "Completa"])
     private let nextButton = UIButton(type: .system)
     private let deleteButton = UIButton(type: .system)
     private let prefixButton = UIButton(type: .system)
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(red: 0.018, green: 0.020, blue: 0.026, alpha: 1)
+        view.backgroundColor = UIColor.systemBackground
         setup()
         Task { await refreshStatus() }
     }
 
     private func setup() {
-        let title = UILabel()
-        title.text = "Voz MCP"
-        title.textColor = .white
-        title.font = .systemFont(ofSize: 15, weight: .semibold)
+        titleLabel.text = "Voz MCP"
+        titleLabel.textColor = .label
+        titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
+        titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
-        statusLabel.text = "Dite no campo e toque no orbe."
-        statusLabel.textColor = UIColor.white.withAlphaComponent(0.58)
+        statusLabel.text = "Dite no campo e transforme aqui."
+        statusLabel.textColor = .secondaryLabel
         statusLabel.font = .systemFont(ofSize: 11, weight: .medium)
         statusLabel.numberOfLines = 2
-        statusLabel.textAlignment = .right
+        statusLabel.textAlignment = .left
 
         configureIcon(deleteButton, symbol: "delete.left", action: #selector(deleteBackward), label: "Apagar")
         configureIcon(nextButton, symbol: "globe", action: #selector(advanceKeyboard), label: "Trocar teclado")
 
-        let topRow = UIStackView(arrangedSubviews: [title, spacer(), deleteButton, nextButton])
+        let topRow = UIStackView(arrangedSubviews: [titleLabel, UIView(), deleteButton, nextButton])
         topRow.axis = .horizontal
         topRow.alignment = .center
         topRow.spacing = 8
 
-        orb.addTarget(self, action: #selector(transformHostField), for: .touchUpInside)
-        orb.translatesAutoresizingMaskIntoConstraints = false
+        energyGlyph.translatesAutoresizingMaskIntoConstraints = false
 
-        let orbColumn = UIStackView(arrangedSubviews: [orb])
-        orbColumn.axis = .vertical
-        orbColumn.alignment = .center
+        configureTransformButton()
+        transformButton.addTarget(self, action: #selector(transformHostField), for: .touchUpInside)
 
-        let middle = UIStackView(arrangedSubviews: [orbColumn, statusLabel])
-        middle.axis = .horizontal
-        middle.alignment = .center
-        middle.spacing = 16
+        let actionRow = UIStackView(arrangedSubviews: [energyGlyph, transformButton])
+        actionRow.axis = .horizontal
+        actionRow.alignment = .center
+        actionRow.spacing = 10
 
         lengthControl.selectedSegmentIndex = 0
-        lengthControl.selectedSegmentTintColor = UIColor.white.withAlphaComponent(0.92)
-        lengthControl.setTitleTextAttributes([.foregroundColor: UIColor.black, .font: UIFont.systemFont(ofSize: 11, weight: .bold)], for: .selected)
-        lengthControl.setTitleTextAttributes([.foregroundColor: UIColor.white.withAlphaComponent(0.68), .font: UIFont.systemFont(ofSize: 11, weight: .semibold)], for: .normal)
+        lengthControl.selectedSegmentTintColor = .label
+        lengthControl.setTitleTextAttributes(
+            [.foregroundColor: UIColor.systemBackground, .font: UIFont.systemFont(ofSize: 11, weight: .bold)],
+            for: .selected
+        )
+        lengthControl.setTitleTextAttributes(
+            [.foregroundColor: UIColor.secondaryLabel, .font: UIFont.systemFont(ofSize: 11, weight: .semibold)],
+            for: .normal
+        )
 
-        configurePill(prefixButton, title: "Inserir comando", symbol: "text.cursor", action: #selector(insertPrefix))
+        configurePrefixButton()
+        prefixButton.addTarget(self, action: #selector(insertPrefix), for: .touchUpInside)
 
         let bottomRow = UIStackView(arrangedSubviews: [lengthControl, prefixButton])
         bottomRow.axis = .horizontal
         bottomRow.alignment = .center
         bottomRow.spacing = 8
-        bottomRow.distribution = .fillProportionally
+        bottomRow.distribution = .fill
 
-        let stack = UIStackView(arrangedSubviews: [topRow, middle, bottomRow])
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        stack.axis = .vertical
-        stack.spacing = 10
-        view.addSubview(stack)
+        let content = UIStackView(arrangedSubviews: [topRow, statusLabel, actionRow, bottomRow])
+        content.translatesAutoresizingMaskIntoConstraints = false
+        content.axis = .vertical
+        content.spacing = 8
+        view.addSubview(content)
 
         NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12),
-            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
-            stack.topAnchor.constraint(equalTo: view.topAnchor, constant: 10),
-            stack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10),
-            orb.widthAnchor.constraint(equalToConstant: 92),
-            orb.heightAnchor.constraint(equalToConstant: 92),
-            view.heightAnchor.constraint(greaterThanOrEqualToConstant: 176)
+            content.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12),
+            content.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
+            content.topAnchor.constraint(equalTo: view.topAnchor, constant: 8),
+            content.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -8),
+            energyGlyph.widthAnchor.constraint(equalToConstant: 42),
+            energyGlyph.heightAnchor.constraint(equalToConstant: 42),
+            transformButton.heightAnchor.constraint(equalToConstant: 46),
+            deleteButton.widthAnchor.constraint(equalToConstant: 36),
+            nextButton.widthAnchor.constraint(equalToConstant: 36),
+            prefixButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 118),
+            view.heightAnchor.constraint(greaterThanOrEqualToConstant: 158)
         ])
     }
 
     private func refreshStatus() async {
         let status = await DraftGenerator().modelStatus()
         await MainActor.run {
-            statusLabel.text = status.isReady ? "IA local pronta.\nTransforme o campo." : "\(status.title)\nUso composição local se precisar."
+            statusLabel.text = status.isReady ? "IA local da Apple pronta. O texto será inserido no campo ativo." : "IA Apple indisponível agora. Uso composição local inteligente."
         }
     }
 
@@ -89,9 +100,9 @@ final class KeyboardViewController: UIInputViewController {
         guard let command = extractCommand(from: beforeInput) else {
             if beforeInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 textDocumentProxy.insertText("voz mcp ")
-                statusLabel.text = "Agora dite o pedido\nno campo do app."
+                statusLabel.text = "Dite seu pedido depois de voz mcp."
             } else {
-                statusLabel.text = "Inclua o pedido no campo:\nvoz mcp escreva..."
+                statusLabel.text = "Use: voz mcp responda dizendo que..."
             }
             return
         }
@@ -107,7 +118,7 @@ final class KeyboardViewController: UIInputViewController {
 
     @objc private func insertPrefix() {
         textDocumentProxy.insertText("voz mcp ")
-        statusLabel.text = "Dite seu pedido depois\ndesse comando."
+        statusLabel.text = "Agora dite ou escreva o pedido."
     }
 
     @objc private func deleteBackward() {
@@ -121,9 +132,7 @@ final class KeyboardViewController: UIInputViewController {
     private func insertGenerated(command: String, context: String, charactersToDelete: Int) async {
         await MainActor.run {
             statusLabel.text = "Transformando..."
-            orb.setWorking(true)
-            orb.isEnabled = false
-            prefixButton.isEnabled = false
+            setWorking(true)
         }
 
         let request = DraftRequest(command: sized(command), context: context, tone: .natural)
@@ -136,11 +145,19 @@ final class KeyboardViewController: UIInputViewController {
                 }
             }
             textDocumentProxy.insertText(result.text)
-            orb.isEnabled = true
-            prefixButton.isEnabled = true
-            orb.setWorking(false)
-            statusLabel.text = "\(result.engine.title)\nInserido no campo."
+            statusLabel.text = "\(result.engine.title). Inserido no campo."
+            setWorking(false)
         }
+    }
+
+    private func setWorking(_ working: Bool) {
+        transformButton.isEnabled = !working
+        prefixButton.isEnabled = !working
+        energyGlyph.setActive(working)
+        var configuration = transformButton.configuration
+        configuration?.title = working ? "Transformando" : "Transformar"
+        configuration?.showsActivityIndicator = working
+        transformButton.configuration = configuration
     }
 
     private func sized(_ command: String) -> String {
@@ -166,83 +183,87 @@ final class KeyboardViewController: UIInputViewController {
         }
 
         let trimmed = context.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.count <= 420 else { return nil }
-        if trimmed.range(of: "escrev", options: [.caseInsensitive, .diacriticInsensitive]) != nil ||
-            trimmed.range(of: "respond", options: [.caseInsensitive, .diacriticInsensitive]) != nil ||
-            trimmed.range(of: "manda", options: [.caseInsensitive, .diacriticInsensitive]) != nil ||
-            trimmed.range(of: "diga", options: [.caseInsensitive, .diacriticInsensitive]) != nil {
-            return (trimmed, context.count)
+        guard (6...700).contains(trimmed.count) else { return nil }
+        let markers = ["escrev", "respond", "manda", "mande", "diga", "fale", "receita", "passo a passo"]
+        let hasCommand = markers.contains { marker in
+            trimmed.range(of: marker, options: [.caseInsensitive, .diacriticInsensitive]) != nil
         }
+        return hasCommand ? (trimmed, context.count) : nil
+    }
 
-        return nil
+    private func configureTransformButton() {
+        var configuration = UIButton.Configuration.filled()
+        configuration.title = "Transformar"
+        configuration.image = UIImage(systemName: "sparkles")
+        configuration.imagePadding = 7
+        configuration.cornerStyle = .capsule
+        configuration.baseForegroundColor = .white
+        configuration.baseBackgroundColor = .label
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 14, bottom: 12, trailing: 14)
+        transformButton.configuration = configuration
+        transformButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+        transformButton.accessibilityLabel = "Transformar pedido em mensagem"
+    }
+
+    private func configurePrefixButton() {
+        var configuration = UIButton.Configuration.tinted()
+        configuration.title = "voz mcp"
+        configuration.image = UIImage(systemName: "text.cursor")
+        configuration.imagePadding = 5
+        configuration.cornerStyle = .capsule
+        configuration.baseForegroundColor = .label
+        configuration.baseBackgroundColor = .secondarySystemFill
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 10, bottom: 8, trailing: 10)
+        prefixButton.configuration = configuration
+        prefixButton.titleLabel?.font = .systemFont(ofSize: 12, weight: .semibold)
+        prefixButton.accessibilityLabel = "Inserir comando Voz MCP"
     }
 
     private func configureIcon(_ button: UIButton, symbol: String, action: Selector, label: String) {
-        var configuration = UIButton.Configuration.filled()
+        var configuration = UIButton.Configuration.tinted()
         configuration.image = UIImage(systemName: symbol)
-        configuration.cornerStyle = .large
-        configuration.baseForegroundColor = .white
-        configuration.baseBackgroundColor = UIColor.white.withAlphaComponent(0.10)
-        configuration.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 10, bottom: 8, trailing: 10)
+        configuration.cornerStyle = .capsule
+        configuration.baseForegroundColor = .label
+        configuration.baseBackgroundColor = .secondarySystemFill
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 7, leading: 8, bottom: 7, trailing: 8)
         button.configuration = configuration
         button.accessibilityLabel = label
         button.addTarget(self, action: action, for: .touchUpInside)
     }
-
-    private func configurePill(_ button: UIButton, title: String, symbol: String, action: Selector) {
-        var configuration = UIButton.Configuration.filled()
-        configuration.title = title
-        configuration.image = UIImage(systemName: symbol)
-        configuration.imagePadding = 5
-        configuration.cornerStyle = .large
-        configuration.baseForegroundColor = .white
-        configuration.baseBackgroundColor = UIColor.white.withAlphaComponent(0.10)
-        configuration.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 10, bottom: 8, trailing: 10)
-        button.configuration = configuration
-        button.titleLabel?.font = .systemFont(ofSize: 11, weight: .semibold)
-        button.addTarget(self, action: action, for: .touchUpInside)
-    }
-
-    private func spacer() -> UIView {
-        let view = UIView()
-        view.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        return view
-    }
 }
 
-final class SiriTransformControl: UIControl {
+final class EnergyGlyphView: UIView {
     private let gradientLayer = CAGradientLayer()
     private let glassLayer = CALayer()
-    private let symbolView = UIImageView(image: UIImage(systemName: "sparkles"))
+    private let symbolView = UIImageView(image: UIImage(systemName: "waveform"))
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        isAccessibilityElement = true
-        accessibilityLabel = "Transformar texto"
+        isUserInteractionEnabled = false
 
         gradientLayer.type = .conic
         gradientLayer.colors = [
             UIColor.systemCyan.cgColor,
+            UIColor.systemMint.cgColor,
             UIColor.white.cgColor,
             UIColor.systemOrange.cgColor,
             UIColor.systemPink.cgColor,
-            UIColor.systemMint.cgColor,
             UIColor.systemCyan.cgColor
         ]
         layer.addSublayer(gradientLayer)
 
-        glassLayer.backgroundColor = UIColor(red: 0.025, green: 0.034, blue: 0.045, alpha: 0.88).cgColor
+        glassLayer.backgroundColor = UIColor.secondarySystemBackground.withAlphaComponent(0.88).cgColor
         layer.addSublayer(glassLayer)
 
-        symbolView.tintColor = .white
+        symbolView.tintColor = .label
         symbolView.contentMode = .scaleAspectFit
         addSubview(symbolView)
 
         layer.shadowColor = UIColor.systemCyan.cgColor
-        layer.shadowOpacity = 0.26
-        layer.shadowRadius = 22
+        layer.shadowOpacity = 0.18
+        layer.shadowRadius = 10
         layer.shadowOffset = .zero
-        startIdleAnimation()
+        startAnimation()
     }
 
     required init?(coder: NSCoder) {
@@ -253,36 +274,31 @@ final class SiriTransformControl: UIControl {
         super.layoutSubviews()
         gradientLayer.frame = bounds
         gradientLayer.cornerRadius = bounds.width / 2
-        glassLayer.frame = bounds.insetBy(dx: 8, dy: 8)
+        glassLayer.frame = bounds.insetBy(dx: 4, dy: 4)
         glassLayer.cornerRadius = glassLayer.bounds.width / 2
-        symbolView.frame = bounds.insetBy(dx: 31, dy: 31)
+        symbolView.frame = bounds.insetBy(dx: 12, dy: 12)
     }
 
-    func setWorking(_ working: Bool) {
-        symbolView.image = UIImage(systemName: working ? "waveform" : "sparkles")
-        layer.shadowOpacity = working ? 0.42 : 0.26
-        layer.shadowRadius = working ? 30 : 22
-        startIdleAnimation()
+    func setActive(_ active: Bool) {
+        layer.shadowOpacity = active ? 0.34 : 0.18
+        layer.shadowRadius = active ? 18 : 10
+        symbolView.image = UIImage(systemName: active ? "waveform" : "sparkles")
     }
 
-    private func startIdleAnimation() {
-        if gradientLayer.animation(forKey: "rotation") == nil {
-            let rotation = CABasicAnimation(keyPath: "transform.rotation.z")
-            rotation.fromValue = 0
-            rotation.toValue = Double.pi * 2
-            rotation.duration = 7
-            rotation.repeatCount = .infinity
-            gradientLayer.add(rotation, forKey: "rotation")
-        }
+    private func startAnimation() {
+        let rotation = CABasicAnimation(keyPath: "transform.rotation.z")
+        rotation.fromValue = 0
+        rotation.toValue = Double.pi * 2
+        rotation.duration = 6
+        rotation.repeatCount = .infinity
+        gradientLayer.add(rotation, forKey: "rotation")
 
-        if layer.animation(forKey: "pulse") == nil {
-            let pulse = CABasicAnimation(keyPath: "transform.scale")
-            pulse.fromValue = 0.985
-            pulse.toValue = 1.025
-            pulse.duration = 1.25
-            pulse.autoreverses = true
-            pulse.repeatCount = .infinity
-            layer.add(pulse, forKey: "pulse")
-        }
+        let pulse = CABasicAnimation(keyPath: "transform.scale")
+        pulse.fromValue = 0.98
+        pulse.toValue = 1.03
+        pulse.duration = 1.2
+        pulse.autoreverses = true
+        pulse.repeatCount = .infinity
+        layer.add(pulse, forKey: "pulse")
     }
 }

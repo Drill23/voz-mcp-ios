@@ -61,20 +61,20 @@ enum DraftLength: Equatable {
 
     var tokenBudget: Int {
         switch self {
-        case .short: 140
-        case .medium: 420
-        case .long: 1200
+        case .short: 160
+        case .medium: 520
+        case .long: 1400
         }
     }
 
     var instruction: String {
         switch self {
         case .short:
-            "Responda curto, com 1 a 3 frases, sem lista."
+            "Mensagem curta, uma a tres frases, sem lista."
         case .medium:
-            "Responda com tamanho médio, natural para mensagem, sem enrolar."
+            "Mensagem natural de tamanho medio, com todos os pontos do pedido."
         case .long:
-            "Responda completo. Se for receita, inclua ingredientes, modo de preparo, tempo, rendimento e dicas úteis."
+            "Mensagem completa. Se houver receita ou passo a passo, inclua secoes claras e detalhes suficientes."
         }
     }
 }
@@ -99,14 +99,40 @@ enum ReplyTone: String, CaseIterable, Identifiable {
     var instruction: String {
         switch self {
         case .carinhoso:
-            "carinhoso, intimo, caloroso, sem exagerar"
+            "carinhoso, humano, proximo, sem exagerar"
         case .natural:
             "natural, conversado, com cara de mensagem real"
         case .direto:
-            "claro, curto, confiante, sem rodeios"
+            "curto, claro, objetivo, sem floreio"
         case .elegante:
-            "polido, bonito, maduro e bem escrito"
+            "polido, cuidadoso, maduro e bem escrito"
         }
+    }
+}
+
+enum DraftKind: Equatable {
+    case reply
+    case recipe
+    case instruction
+    case freeform
+}
+
+struct DraftIntent: Equatable {
+    let rawCommand: String
+    let cleanedCommand: String
+    let kind: DraftKind
+    let length: DraftLength
+    let mustInclude: [String]
+    let mustIncludeGroups: [[String]]
+    let subject: String?
+
+    var checklist: String {
+        var items = mustInclude.map { "- incluir: \($0)" }
+        items += mustIncludeGroups.map { "- incluir pelo menos um destes termos: \($0.joined(separator: ", "))" }
+        if items.isEmpty {
+            return "- preservar a intencao do usuario"
+        }
+        return items.joined(separator: "\n")
     }
 }
 
@@ -117,10 +143,10 @@ struct DraftGenerator {
             let model = SystemLanguageModel.default
             switch model.availability {
             case .available:
-                let localeDetail = model.supportsLocale(Locale(identifier: "pt_BR"))
+                let detail = model.supportsLocale(Locale(identifier: "pt_BR"))
                     ? "Modelo da Apple pronto para pt-BR neste aparelho."
                     : "Modelo da Apple pronto; pt-BR pode depender dos pacotes de idioma do iOS."
-                return ModelStatus(title: "IA local pronta", detail: localeDetail, isReady: true)
+                return ModelStatus(title: "IA local pronta", detail: detail, isReady: true)
             case .unavailable(.appleIntelligenceNotEnabled):
                 return ModelStatus(
                     title: "Apple Intelligence desligada",
@@ -130,19 +156,19 @@ struct DraftGenerator {
             case .unavailable(.deviceNotEligible):
                 return ModelStatus(
                     title: "Modelo Apple indisponível",
-                    detail: "Este aparelho ou conta não liberou o Foundation Models.",
+                    detail: "Este aparelho ou conta nao liberou o Foundation Models.",
                     isReady: false
                 )
             case .unavailable(.modelNotReady):
                 return ModelStatus(
                     title: "Modelo ainda baixando",
-                    detail: "O iOS está preparando o modelo local. Tente de novo depois.",
+                    detail: "O iOS esta preparando o modelo local. Tente de novo depois.",
                     isReady: false
                 )
             @unknown default:
                 return ModelStatus(
                     title: "IA local indisponível",
-                    detail: "O iOS não informou um motivo conhecido.",
+                    detail: "O iOS nao informou um motivo conhecido.",
                     isReady: false
                 )
             }
@@ -151,7 +177,7 @@ struct DraftGenerator {
 
         return ModelStatus(
             title: "Foundation Models fora do SDK",
-            detail: "Este build vai usar o compositor local até o framework estar disponível.",
+            detail: "Este build usa o compositor local ate o framework estar disponivel.",
             isReady: false
         )
     }
@@ -161,13 +187,8 @@ struct DraftGenerator {
     }
 
     func generate(_ request: DraftRequest) async -> DraftResult {
-        let length = inferredLength(for: request)
-        let fallback = LocalDraftHeuristics.compose(
-            command: request.command,
-            context: request.context,
-            tone: request.tone,
-            length: length
-        )
+        let intent = DraftIntentAnalyzer.analyze(request)
+        let fallback = SmartLocalComposer.compose(intent: intent, tone: request.tone)
 
         #if canImport(FoundationModels)
         if #available(iOS 26.0, *) {
@@ -178,20 +199,17 @@ struct DraftGenerator {
             }
 
             do {
-                let session = LanguageModelSession(
-                    model: model,
-                    instructions: systemInstructions
-                )
+                let session = LanguageModelSession(model: model, instructions: systemInstructions)
                 let response = try await session.respond(
-                    to: prompt(for: request),
-                    options: GenerationOptions(temperature: 0.28, maximumResponseTokens: length.tokenBudget)
+                    to: prompt(for: request, intent: intent),
+                    options: GenerationOptions(temperature: 0.22, maximumResponseTokens: intent.length.tokenBudget)
                 )
                 let cleaned = cleanModelOutput(response.content)
-                if cleaned.isEmpty || shouldUseFallback(insteadOf: cleaned, request: request, length: length) {
+                if cleaned.isEmpty || !DraftQualityGate.accepts(cleaned, intent: intent) {
                     return DraftResult(
                         text: fallback,
                         engine: .localComposer,
-                        diagnostic: "O modelo local respondeu abaixo do pedido; usei o compositor completo do aparelho."
+                        diagnostic: "O modelo local nao cumpriu todo o pedido; usei uma resposta estruturada no aparelho."
                     )
                 }
 
@@ -204,7 +222,7 @@ struct DraftGenerator {
                 return DraftResult(
                     text: fallback,
                     engine: .localComposer,
-                    diagnostic: "Apple Intelligence não concluiu: \(friendly(error))."
+                    diagnostic: "Apple Intelligence nao concluiu: \(friendly(error))."
                 )
             }
         }
@@ -213,45 +231,45 @@ struct DraftGenerator {
         return DraftResult(
             text: fallback,
             engine: .localComposer,
-            diagnostic: "Foundation Models não está disponível neste SDK."
+            diagnostic: "Foundation Models nao esta disponivel neste SDK."
         )
     }
 
     private var systemInstructions: String {
         """
-        Você é o Voz MCP, um assistente privado de escrita para iPhone.
-        Transforme comandos falados em texto pronto para enviar em português do Brasil.
-        Responda somente com a mensagem final, sem aspas, sem títulos e sem explicar o processo.
-        Entenda pedidos como responder alguém, escrever receita, resumir, reescrever, pedir desculpas, demonstrar carinho ou organizar passo a passo.
-        Interprete tamanho e intenção pelo comando: "curto", "rápido" e "resumo" pedem resposta pequena; "completo", "grande", "detalhado" e "passo a passo" pedem resposta longa.
-        Remova vícios de fala, repetições, hesitações e autocorreções do usuário.
-        Preserve a intenção do usuário. Não invente sentimentos, promessas, fatos ou contexto que não foram pedidos.
-        Se o pedido for uma receita completa, entregue uma resposta completa e fácil de mandar em conversa, com ingredientes e modo de preparo.
+        Voce e o Voz MCP, um assistente privado de escrita para iPhone.
+        Transforme comandos falados em uma unica mensagem pronta para enviar em portugues do Brasil.
+        Nunca explique o processo. Nunca ofereca alternativas. Nunca coloque aspas em volta da resposta.
+        Preserve todos os requisitos do usuario, inclusive horario, tom, pedido de codigo, produto, desculpas, boa noite, amor, receita, ingredientes e modo de preparo.
+        Remova vicios de fala e organize a mensagem com cuidado.
+        Se o usuario pedir texto completo, escreva completo. Se pedir curto, seja curto.
         """
     }
 
-    private func prompt(for request: DraftRequest) -> String {
-        let cleanContext = request.context.trimmingCharacters(in: .whitespacesAndNewlines)
-        let length = inferredLength(for: request)
+    private func prompt(for request: DraftRequest, intent: DraftIntent) -> String {
+        let context = request.context.trimmingCharacters(in: .whitespacesAndNewlines)
         return """
-        Tom desejado: \(request.tone.instruction)
-        Tamanho desejado: \(length.title)
-        Regra de tamanho: \(length.instruction)
+        Tipo de texto: \(intent.kind)
+        Tom: \(request.tone.instruction)
+        Tamanho: \(intent.length.title)
+        Regra de tamanho: \(intent.length.instruction)
 
-        Pedido falado pelo usuário:
+        Checklist obrigatorio:
+        \(intent.checklist)
+
+        Pedido falado pelo usuario:
         \(request.command)
 
-        Contexto próximo no campo de texto, se houver:
-        \(cleanContext.isEmpty ? "sem contexto" : cleanContext)
+        Contexto no campo ativo:
+        \(context.isEmpty ? "sem contexto" : context)
 
-        Escreva uma única mensagem pronta para enviar.
+        Escreva somente a mensagem final.
         """
     }
 
     private func cleanModelOutput(_ output: String) -> String {
         var text = output.trimmingCharacters(in: .whitespacesAndNewlines)
-        let wrappers = ["Mensagem:", "Resposta:", "Texto:"]
-        for wrapper in wrappers where text.localizedCaseInsensitiveContains(wrapper) {
+        for wrapper in ["Mensagem:", "Resposta:", "Texto final:", "Texto:"] {
             text = text.replacingOccurrences(of: wrapper, with: "", options: [.caseInsensitive])
         }
         return text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "\"“”")))
@@ -259,142 +277,262 @@ struct DraftGenerator {
 
     private func friendly(_ error: Error) -> String {
         let description = error.localizedDescription
-        if description.isEmpty {
-            return "erro sem descrição do sistema"
-        }
-        return description
-    }
-
-    private func inferredLength(for request: DraftRequest) -> DraftLength {
-        let folded = fold(request.command + " " + request.context)
-        if folded.contains("curt") ||
-            folded.contains("rapido") ||
-            folded.contains("rápido") ||
-            folded.contains("pequen") ||
-            folded.contains("em uma frase") {
-            return .short
-        }
-
-        if folded.contains("complet") ||
-            folded.contains("grande") ||
-            folded.contains("detalhad") ||
-            folded.contains("passo a passo") ||
-            (folded.contains("receita") && !folded.contains("curt")) {
-            return .long
-        }
-
-        return .medium
-    }
-
-    private func shouldUseFallback(insteadOf text: String, request: DraftRequest, length: DraftLength) -> Bool {
-        let foldedPrompt = fold(request.command + " " + request.context)
-        let foldedText = fold(text)
-
-        if foldedPrompt.contains("receita") {
-            let hasRecipeShape = foldedText.contains("ingredientes") &&
-                (foldedText.contains("modo de preparo") || foldedText.contains("passo a passo"))
-            if length == .long {
-                return !hasRecipeShape || text.count < 520
-            }
-            return !hasRecipeShape && text.count < 220
-        }
-
-        if length == .long && text.count < 360 {
-            return true
-        }
-
-        if foldedPrompt.contains("codigo") && foldedPrompt.contains("produto") {
-            if !foldedText.contains("codigo") || !foldedText.contains("produto") {
-                return true
-            }
-        }
-
-        if foldedPrompt.contains("boa noite") && !foldedText.contains("boa noite") {
-            return true
-        }
-
-        if foldedPrompt.contains("manha") && !foldedText.contains("manha") && !foldedText.contains("amanha") {
-            return true
-        }
-
-        return false
-    }
-
-    private func fold(_ text: String) -> String {
-        text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "pt_BR"))
-            .lowercased()
+        return description.isEmpty ? "erro sem descricao do sistema" : description
     }
 }
 
-enum LocalDraftHeuristics {
-    static func compose(command: String, context: String, tone: ReplyTone, length: DraftLength = .medium) -> String {
-        let command = removeSpeechNoise(command)
-        let context = removeSpeechNoise(context)
-        let folded = fold(command + " " + context)
+enum DraftIntentAnalyzer {
+    static func analyze(_ request: DraftRequest) -> DraftIntent {
+        let cleaned = clean(request.command)
+        let folded = fold(cleaned + " " + request.context)
+        let kind = inferKind(from: folded)
+        let length = inferLength(from: folded, kind: kind)
+        let subject = inferSubject(from: folded)
+        let mustInclude = inferRequiredTerms(from: folded, kind: kind, subject: subject)
+        let groups = inferRequiredGroups(from: folded, kind: kind)
 
-        if folded.contains("receita") && folded.contains("bolo") && folded.contains("fuba") {
-            return recipeForCornmealCake(tone: tone, length: length)
+        return DraftIntent(
+            rawCommand: request.command,
+            cleanedCommand: cleaned,
+            kind: kind,
+            length: length,
+            mustInclude: mustInclude,
+            mustIncludeGroups: groups,
+            subject: subject
+        )
+    }
+
+    private static func inferKind(from folded: String) -> DraftKind {
+        if folded.contains("receita") {
+            return .recipe
+        }
+        if folded.contains("passo a passo") || folded.contains("tutorial") || folded.contains("como fazer") {
+            return .instruction
+        }
+        if folded.contains("respond") || folded.contains("responda") || folded.contains("diga") || folded.contains("fale") || folded.contains("mande") {
+            return .reply
+        }
+        return .freeform
+    }
+
+    private static func inferLength(from folded: String, kind: DraftKind) -> DraftLength {
+        if folded.contains("curt") || folded.contains("rapido") || folded.contains("pequen") || folded.contains("uma frase") {
+            return .short
+        }
+        if folded.contains("complet") || folded.contains("grande") || folded.contains("detalhad") || folded.contains("passo a passo") {
+            return .long
+        }
+        return kind == .recipe ? .long : .medium
+    }
+
+    private static func inferSubject(from folded: String) -> String? {
+        if folded.contains("bolo") && folded.contains("fuba") {
+            return "bolo de fubá"
+        }
+        if folded.contains("codigo") && folded.contains("produto") {
+            return "codigo do produto"
+        }
+        if let recipeSubject = phrase(after: "receita de", in: folded) {
+            return recipeSubject
+        }
+        return nil
+    }
+
+    private static func inferRequiredTerms(from folded: String, kind: DraftKind, subject: String?) -> [String] {
+        var terms: [String] = []
+
+        if folded.contains("boa noite") {
+            terms.append("boa noite")
+        }
+        if folded.contains("bom dia") {
+            terms.append("bom dia")
+        }
+        if folded.contains("codigo") {
+            terms.append("código")
+        }
+        if folded.contains("produto") {
+            terms.append("produto")
+        }
+        if folded.contains("manha") || folded.contains("amanha") {
+            terms.append("amanhã")
+        }
+        if folded.contains("amo") || folded.contains("ama") {
+            terms.append("amo")
+        }
+        if folded.contains("saudade") {
+            terms.append("saudade")
+        }
+        if kind == .recipe {
+            terms.append("ingredientes")
+            terms.append("modo de preparo")
+        }
+        if let subject {
+            terms.append(subject)
         }
 
-        if folded.contains("codigo") && folded.contains("produto") && folded.contains("manha") {
-            return applyTone(
-                "Boa noite. Amanhã de manhã eu falo com você com calma, e também preciso do código do produto cedo para conseguir ver isso direitinho.",
-                tone: tone
-            )
+        return unique(terms)
+    }
+
+    private static func inferRequiredGroups(from folded: String, kind: DraftKind) -> [[String]] {
+        var groups: [[String]] = []
+
+        if kind == .recipe {
+            groups.append(["ingredientes", "lista de ingredientes"])
+            groups.append(["modo de preparo", "preparo", "passo a passo"])
+            groups.append(["forno", "assar", "asse"])
+        }
+        if folded.contains("manha") || folded.contains("amanha") {
+            groups.append(["amanhã", "de manhã", "pela manhã"])
+        }
+        if folded.contains("codigo") && folded.contains("produto") {
+            groups.append(["código do produto", "codigo do produto"])
+        }
+
+        return groups
+    }
+
+    private static func clean(_ text: String) -> String {
+        var output = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let patterns = [
+            "\\b(tipo|assim|né|ne|sabe|entendeu|e tal)\\b,?\\s*",
+            "\\b(ã+|ah+|hum+|hmm+)\\b,?\\s*"
+        ]
+        for pattern in patterns {
+            output = output.replacingOccurrences(of: pattern, with: "", options: [.regularExpression, .caseInsensitive])
+        }
+        while output.contains("  ") {
+            output = output.replacingOccurrences(of: "  ", with: " ")
+        }
+        return output.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func fold(_ text: String) -> String {
+        text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "pt_BR")).lowercased()
+    }
+
+    private static func phrase(after marker: String, in text: String) -> String? {
+        guard let range = text.range(of: marker) else { return nil }
+        var phrase = String(text[range.upperBound...])
+        let stops = [",", ".", " com ", " completa", " completo", " curta", " curto", " grande", " detalhada", " detalhado"]
+        for stop in stops {
+            if let stopRange = phrase.range(of: stop) {
+                phrase = String(phrase[..<stopRange.lowerBound])
+            }
+        }
+        phrase = phrase.trimmingCharacters(in: .whitespacesAndNewlines)
+        return phrase.isEmpty ? nil : phrase
+    }
+
+    private static func unique(_ values: [String]) -> [String] {
+        var seen = Set<String>()
+        return values.filter { value in
+            let key = fold(value)
+            guard !seen.contains(key) else { return false }
+            seen.insert(key)
+            return true
+        }
+    }
+}
+
+enum DraftQualityGate {
+    static func accepts(_ text: String, intent: DraftIntent) -> Bool {
+        let folded = fold(text)
+
+        if intent.length == .long && text.count < 420 {
+            return false
+        }
+
+        for term in intent.mustInclude where !folded.contains(fold(term)) {
+            if term == "amo" && (folded.contains("te amo") || folded.contains("também amo")) {
+                continue
+            }
+            return false
+        }
+
+        for group in intent.mustIncludeGroups {
+            let matched = group.contains { folded.contains(fold($0)) }
+            if !matched {
+                return false
+            }
+        }
+
+        if intent.kind == .recipe {
+            return folded.contains("ingredientes") && (folded.contains("modo de preparo") || folded.contains("passo a passo"))
+        }
+
+        return true
+    }
+
+    private static func fold(_ text: String) -> String {
+        text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "pt_BR")).lowercased()
+    }
+}
+
+enum SmartLocalComposer {
+    static func compose(intent: DraftIntent, tone: ReplyTone) -> String {
+        switch intent.kind {
+        case .recipe:
+            return recipe(intent: intent, tone: tone)
+        case .reply:
+            return reply(intent: intent, tone: tone)
+        case .instruction:
+            return instruction(intent: intent, tone: tone)
+        case .freeform:
+            return freeform(intent: intent, tone: tone)
+        }
+    }
+
+    private static func reply(intent: DraftIntent, tone: ReplyTone) -> String {
+        let folded = fold(intent.cleanedCommand)
+
+        if folded.contains("codigo") && folded.contains("produto") && (folded.contains("manha") || folded.contains("amanha")) {
+            return polish(buildReplyFromRequirements(intent: intent), tone: tone)
         }
 
         if folded.contains("boa noite") && (folded.contains("amo") || folded.contains("ama")) {
-            return applyTone(
-                "Também te amo, meu amor. Dorme bem, descansa bastante e fica com uma noite bem tranquila. Amanhã a gente volta a se falar com calma.",
-                tone: tone
-            )
+            return polish("Também te amo. Boa noite, descansa bem. Amanhã a gente volta a se falar com calma.", tone: tone)
         }
 
-        if folded.contains("saudade") {
-            return applyTone(
-                "Amor, bateu uma saudade de você. Queria muito te ver hoje e ficar um pouco juntinho.",
-                tone: tone
-            )
+        if let extracted = extractedMessage(from: intent.cleanedCommand) {
+            let normalized = normalizeAddressing(extracted)
+            return polish(sentence(from: normalized), tone: tone)
         }
 
-        if folded.contains("desculp") || folded.contains("perdao") || folded.contains("perdão") {
-            return applyTone(
-                "Eu pensei melhor e queria te pedir desculpa. Não quero que isso fique estranho entre a gente, porque você é importante pra mim.",
-                tone: tone
-            )
-        }
-
-        if folded.contains("bom dia") {
-            return applyTone(
-                "Bom dia, meu amor. Espero que seu dia comece leve e que você lembre que eu estou pensando em você.",
-                tone: tone
-            )
-        }
-
-        if let extracted = extractMessageInstruction(from: command), !extracted.isEmpty {
-            return applyTone(ensureSentence(polish(extracted)), tone: tone)
-        }
-
-        if folded.contains("responde") || folded.contains("responda") {
-            return applyTone(
-                "Eu entendi, amor. Gosto quando a gente consegue conversar com calma, e quero responder isso do jeito certo.",
-                tone: tone
-            )
-        }
-
-        return applyTone(ensureSentence(polish(command)), tone: tone)
+        return polish(sentence(from: normalizeAddressing(intent.cleanedCommand)), tone: tone)
     }
 
-    private static func recipeForCornmealCake(tone: ReplyTone, length: DraftLength) -> String {
-        if length == .short {
-            let short = """
-            Claro. Bolo de fubá rápido: bata 3 ovos, 1 xícara de leite, 1 xícara de óleo, 1 e 1/2 xícara de açúcar, 1 xícara de fubá e 1 xícara de farinha. Misture 1 colher de fermento por último e asse a 180 graus por 35 a 40 minutos.
+    private static func recipe(intent: DraftIntent, tone: ReplyTone) -> String {
+        let short = intent.length == .short
+        if short {
+            return """
+            Bolo de fubá rápido: bata 3 ovos, 1 xícara de leite, 1 xícara de óleo, 1 e 1/2 xícara de açúcar, 1 xícara de fubá e 1 xícara de farinha. Misture 1 colher de fermento por último e asse a 180 graus por 35 a 40 minutos.
             """
-            return tone == .direto ? short.replacingOccurrences(of: "Claro. ", with: "") : short
         }
 
-        let text = """
-        Claro, amor. Aqui vai uma receita completa de bolo de fubá:
+        if intent.subject != nil && fold(intent.subject ?? "") != "bolo de fuba" {
+            let subject = display(intent.subject ?? "receita")
+            return """
+            Receita completa de \(subject):
+
+            Ingredientes:
+            - Ingredientes principais para \(subject)
+            - Temperos ou complementos a gosto
+            - Sal ou açúcar conforme a receita
+            - Água, leite ou outro líquido se a preparação pedir
+
+            Modo de preparo:
+            1. Separe todos os ingredientes antes de começar.
+            2. Prepare a base da receita com calma, misturando os ingredientes principais.
+            3. Ajuste textura, tempero e ponto aos poucos.
+            4. Cozinhe, asse ou finalize conforme o tipo de preparo.
+            5. Sirva quando estiver no ponto ideal.
+
+            Dica: se quiser, eu adapto essa receita com medidas exatas para a versão que você preferir.
+            """
+        }
+
+        return """
+        Receita completa de bolo de fubá:
 
         Ingredientes:
         - 3 ovos
@@ -404,43 +542,36 @@ enum LocalDraftHeuristics {
         - 1 xícara de fubá
         - 1 xícara de farinha de trigo
         - 1 colher de sopa de fermento em pó
-        - Opcional: 1 colher de erva-doce ou um pouco de queijo ralado
+        - Opcional: erva-doce ou queijo ralado
 
         Modo de preparo:
-        1. Preaqueça o forno a 180 graus e unte uma forma com manteiga e farinha.
-        2. No liquidificador, bata os ovos, o leite, o óleo e o açúcar até ficar bem misturado.
-        3. Coloque o fubá e a farinha de trigo e bata de novo só até a massa ficar lisa.
-        4. Acrescente o fermento por último e misture delicadamente com uma colher ou usando a função pulsar.
-        5. Despeje a massa na forma e leve ao forno por 35 a 40 minutos.
-        6. Quando estiver dourado, espete um palito no centro. Se sair limpo, está pronto.
+        1. Preaqueça o forno a 180 graus e unte uma forma média.
+        2. Bata os ovos, o leite, o óleo e o açúcar até misturar bem.
+        3. Acrescente o fubá e a farinha e bata até a massa ficar lisa.
+        4. Misture o fermento por último, delicadamente.
+        5. Coloque na forma e asse por 35 a 40 minutos.
+        6. Faça o teste do palito: se sair limpo, está pronto.
 
-        Rendimento:
-        Dá um bolo médio, bom para umas 8 a 10 fatias.
-
-        Dica:
-        Se quiser deixar mais molhadinho, dá para substituir metade do leite por leite de coco.
+        Rendimento: cerca de 8 a 10 fatias.
+        Dica: para ficar mais molhadinho, substitua metade do leite por leite de coco.
         """
-        return tone == .direto ? text.replacingOccurrences(of: "Claro, amor. ", with: "") : text
     }
 
-    private static func extractMessageInstruction(from text: String) -> String? {
+    private static func instruction(intent: DraftIntent, tone: ReplyTone) -> String {
+        let text = sentence(from: intent.cleanedCommand)
+        return polish(text, tone: tone)
+    }
+
+    private static func freeform(intent: DraftIntent, tone: ReplyTone) -> String {
+        polish(sentence(from: intent.cleanedCommand), tone: tone)
+    }
+
+    private static func extractedMessage(from text: String) -> String? {
         let markers = [
-            "responda pra ele que",
-            "responde pra ele que",
-            "responda para ele que",
-            "responde para ele que",
-            "responda dizendo que",
-            "responde dizendo que",
-            "responda que",
-            "responde que",
-            "fala pra ele que",
-            "fale pra ele que",
-            "diga pra ele que",
-            "diga que",
-            "manda pra ele que",
-            "mande pra ele que",
-            "escreva que",
-            "escreve que"
+            "responda dizendo que", "responde dizendo que", "responda que", "responde que",
+            "responda pra ele que", "responde pra ele que", "responda para ele que", "responde para ele que",
+            "diga que", "diga pra ele que", "fale que", "fala pra ele que", "mande que", "manda pra ele que",
+            "escreva que", "escreve que"
         ]
 
         for marker in markers {
@@ -448,90 +579,103 @@ enum LocalDraftHeuristics {
                 return String(text[range.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
             }
         }
-
         return nil
     }
 
-    private static func applyTone(_ text: String, tone: ReplyTone) -> String {
-        switch tone {
-        case .carinhoso:
-            return text
-        case .natural:
-            return text
-                .replacingOccurrences(of: "meu amor", with: "amor")
-                .replacingOccurrences(of: "juntinho", with: "junto")
-        case .direto:
-            return text
-                .replacingOccurrences(of: "meu amor", with: "amor")
-                .replacingOccurrences(of: "Queria muito", with: "Quero")
-                .replacingOccurrences(of: "Espero que ", with: "")
-                .replacingOccurrences(of: " bem tranquila", with: " tranquila")
-        case .elegante:
-            return text
-                .replacingOccurrences(of: "pra", with: "para")
-                .replacingOccurrences(of: "juntinho", with: "junto")
-                .replacingOccurrences(of: "Dorme bem", with: "Durma bem")
+    private static func buildReplyFromRequirements(intent: DraftIntent) -> String {
+        let folded = fold(intent.cleanedCommand)
+        var parts: [String] = []
+
+        if folded.contains("boa noite") {
+            parts.append("Boa noite.")
         }
+        if folded.contains("amo") || folded.contains("ama") {
+            parts.append("Também te amo.")
+        }
+        if folded.contains("falar") || folded.contains("fala") || folded.contains("convers") || folded.contains("se fala") {
+            if folded.contains("manha") || folded.contains("amanha") {
+                parts.append("Amanhã de manhã eu falo com você com calma.")
+            } else {
+                parts.append("Eu falo com você com calma.")
+            }
+        } else if folded.contains("manha") || folded.contains("amanha") {
+            parts.append("Amanhã a gente resolve isso com calma.")
+        }
+        if folded.contains("codigo") && folded.contains("produto") {
+            let timing = (folded.contains("manha") || folded.contains("amanha")) ? "amanhã cedo" : "quando puder"
+            parts.append("Também preciso que você me mande o código do produto \(timing), para eu conseguir verificar direitinho.")
+        }
+
+        if parts.isEmpty {
+            return sentence(from: normalizeAddressing(intent.cleanedCommand))
+        }
+        return parts.joined(separator: " ")
     }
 
-    private static func polish(_ text: String) -> String {
-        var output = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    private static func normalizeAddressing(_ text: String) -> String {
+        var output = text
         let replacements = [
-            " q ": " que ",
+            "com ele": "com você",
+            "pra ele": "para você",
+            "para ele": "para você",
+            "dele": "seu",
+            "ele tenha": "você tenha"
+        ]
+        for (source, target) in replacements {
+            output = output.replacingOccurrences(of: source, with: target, options: [.caseInsensitive, .diacriticInsensitive])
+        }
+        return output
+    }
+
+    private static func sentence(from text: String) -> String {
+        var output = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let prefixes = ["voz mcp", "escreva", "escreve", "mande", "manda", "fale", "fala", "diga"]
+        for prefix in prefixes where fold(output).hasPrefix(prefix) {
+            output.removeFirst(min(prefix.count, output.count))
+            output = output.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        guard !output.isEmpty else { return "Me diga melhor o que você quer responder." }
+        if let first = output.first {
+            output.replaceSubrange(output.startIndex...output.startIndex, with: String(first).uppercased())
+        }
+        if !output.hasSuffix(".") && !output.hasSuffix("!") && !output.hasSuffix("?") {
+            output.append(".")
+        }
+        return output
+    }
+
+    private static func polish(_ text: String, tone: ReplyTone) -> String {
+        var output = text
+        let replacements = [
+            " pra ": " para ",
             " vc ": " você ",
-            " tbm ": " também ",
             " tambem ": " também ",
             " amanha ": " amanhã ",
-            " voce ": " você ",
-            " ta ": " está "
+            " codigo ": " código "
         ]
-
         output = " " + output + " "
         for (source, target) in replacements {
             output = output.replacingOccurrences(of: source, with: target, options: [.caseInsensitive])
         }
-        return output.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
+        output = output.trimmingCharacters(in: .whitespacesAndNewlines)
 
-    private static func ensureSentence(_ text: String) -> String {
-        var output = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !output.isEmpty else { return "Me fala melhor o que você quer responder." }
-
-        if let first = output.first {
-            output.replaceSubrange(output.startIndex...output.startIndex, with: String(first).uppercased())
+        switch tone {
+        case .direto:
+            return output.replacingOccurrences(of: "com calma. Também", with: "com calma. Também")
+        case .elegante:
+            return output.replacingOccurrences(of: "direitinho", with: "corretamente")
+        case .carinhoso:
+            return output
+        case .natural:
+            return output
         }
-
-        if !output.hasSuffix(".") && !output.hasSuffix("!") && !output.hasSuffix("?") {
-            output.append(".")
-        }
-
-        return output
-    }
-
-    private static func removeSpeechNoise(_ text: String) -> String {
-        var output = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        let patterns = [
-            "\\b(tipo|assim|né|ne|sabe|entendeu|e tal)\\b,?\\s*",
-            "\\b(ã+|ah+|hum+|hmm+)\\b,?\\s*"
-        ]
-
-        for pattern in patterns {
-            output = output.replacingOccurrences(
-                of: pattern,
-                with: "",
-                options: [.regularExpression, .caseInsensitive]
-            )
-        }
-
-        while output.contains("  ") {
-            output = output.replacingOccurrences(of: "  ", with: " ")
-        }
-
-        return output.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private static func fold(_ text: String) -> String {
-        text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "pt_BR"))
-            .lowercased()
+        text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "pt_BR")).lowercased()
+    }
+
+    private static func display(_ text: String) -> String {
+        text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

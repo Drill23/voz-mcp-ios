@@ -35,13 +35,14 @@ O usuario rejeitou fortemente as versoes anteriores por:
 
 ### App principal
 
-Foi refeito em `VozMCPApp/ContentView.swift` com:
+Foi refeito novamente em `VozMCPApp/ContentView.swift` com:
 
-- Fundo escuro limpo.
-- Orbe animado no centro.
+- `NavigationStack` nativo.
+- Fundo claro/escuro usando `systemGroupedBackground` e materiais do sistema.
+- Botao de voz animado menor e mais iOS.
 - ScrollView para evitar tela cortada.
 - Campo principal e resultado.
-- Menos texto tecnico visivel.
+- Menos texto tecnico visivel e controles com raio menor.
 
 Ainda precisa de validacao visual real no aparelho.
 
@@ -58,17 +59,32 @@ Mudanca importante: o microfone direto dentro do teclado foi removido do fluxo p
 
 Isso imita o comportamento que a primeira versao fazia melhor, mas ainda precisa ficar mais bonito e mais poderoso.
 
+Na revisao mais recente o teclado ficou mais compacto:
+
+- Topo com `Voz MCP`, apagar e trocar teclado.
+- Status curto.
+- Indicador de energia pequeno e animado.
+- Botao principal `Transformar`.
+- Segmented control `Auto`, `Curta`, `Completa`.
+- Botao discreto `voz mcp`.
+
 ### IA
 
 `DraftGenerator.swift` tenta usar `FoundationModels` quando disponivel.
 
-Tambem ha fallback local com regras para:
+Tambem ha fallback local estruturado com:
+
+- `DraftIntentAnalyzer` para detectar tipo, tamanho, assunto e termos obrigatorios.
+- `DraftQualityGate` para descartar respostas rasas ou incompletas do modelo.
+- `SmartLocalComposer` para construir respostas locais melhores quando o modelo nao atende.
+
+Hoje ele cobre melhor:
 
 - Receita de bolo de fuba curta/completa.
 - Boa noite + amor.
-- Saudade.
-- Desculpas.
 - Pedido envolvendo codigo do produto pela manha.
+- Normalizacao de "ele" para "voce" em respostas direcionadas.
+- Comandos compostos com tamanho curto/medio/completo.
 
 Foi adicionada validacao para descartar respostas ruins do modelo quando:
 
@@ -167,14 +183,14 @@ Build:
 
 ```sh
 xcodegen generate
-rm -rf /tmp/VozMCPObj /tmp/VozMCPBuild
-xcodebuild -project VozMCP.xcodeproj -target VozMCP -sdk iphoneos OBJROOT=/tmp/VozMCPObj SYMROOT=/tmp/VozMCPBuild -allowProvisioningUpdates -allowProvisioningDeviceRegistration build
+rm -rf /tmp/VozMCPSignedObj /tmp/VozMCPSignedBuild
+xcodebuild -project VozMCP.xcodeproj -target VozMCP -sdk iphoneos OBJROOT=/tmp/VozMCPSignedObj SYMROOT=/tmp/VozMCPSignedBuild DEVELOPMENT_TEAM=73HPGSC9QX CODE_SIGN_STYLE=Automatic -allowProvisioningUpdates -allowProvisioningDeviceRegistration build
 ```
 
 Instalar:
 
 ```sh
-xcrun devicectl device install app --device A2894021-74E1-5E6A-A5D3-49F47F856D04 "/tmp/VozMCPBuild/Debug-iphoneos/Voz MCP.app"
+xcrun devicectl device install app --device A2894021-74E1-5E6A-A5D3-49F47F856D04 "/tmp/VozMCPSignedBuild/Debug-iphoneos/Voz MCP.app"
 ```
 
 Abrir:
